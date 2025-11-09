@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    tools:context=".AddDeviceActivity">
+
+    <LinearLayout
+        android:id="@+id/header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#007AFF"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <ImageButton
+                android:id="@+id/buttonBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_media_previous"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@android:color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Powrót"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nowe urządzenie"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Konfiguracja urządzenia"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wpisz nazwę osoby, do której ma być przypisane urządzenie"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+            <EditText
+                android:id="@+id/input_patient_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="..."
+                android:background="@drawable/edit_text_background"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wpisz serial number urządzenia"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+            <EditText
+                android:id="@+id/input_serial_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="..."
+                android:background="@drawable/edit_text_background"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wpisz register number urządzenia"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+            <EditText
+                android:id="@+id/input_register_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="..."
+                android:background="@drawable/edit_text_background"
+                android:padding="16dp"
+                android:layout_marginBottom="32dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_generate_key"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Wygeneruj klucz"
+                android:textColor="@android:color/black"
+                android:padding="16dp"
+                app:backgroundTint="#EEEEEE"
+                app:cornerRadius="16dp"/>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
