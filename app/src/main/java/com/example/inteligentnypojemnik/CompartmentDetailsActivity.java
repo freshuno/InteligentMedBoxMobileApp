@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -12,6 +13,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,35 +36,42 @@ public class CompartmentDetailsActivity extends AppCompatActivity {
         String time = getIntent().getStringExtra("TIME");
         String medCount = getIntent().getStringExtra("MED_COUNT");
 
-        if (compartmentName != null) {
-            headerTitle.setText(compartmentName);
-        }
-        if (time != null) {
-            textTime.setText("Godzina przyjmowania: " + time);
-        }
-        if (medCount != null) {
-            textMedCount.setText("Liczba leków: " + medCount);
-        }
+        if (compartmentName != null) headerTitle.setText(compartmentName);
+        if (time != null) textTime.setText("Godzina przyjmowania: " + time);
+        if (medCount != null) textMedCount.setText("Liczba leków: " + medCount);
 
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
+        backButton.setOnClickListener(v -> finish());
+
+        settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(CompartmentDetailsActivity.this, CompartmentSettingsActivity.class);
+            startActivity(intent);
         });
 
-        settingsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(CompartmentDetailsActivity.this, CompartmentSettingsActivity.class);
-                startActivity(intent);
-            }
-        });
+        // ======= NOWE: pobierz dane przegrody z JSON i zbuduj listę leków =======
+        String containerJson = getIntent().getStringExtra("CONTAINER_JSON");
 
         List<Medication> medications = new ArrayList<>();
-        medications.add(new Medication("Lek1 500 mg", "1 kapsułka"));
-        medications.add(new Medication("Lek2 250 mg", "2 kapsułki"));
-        medications.add(new Medication("Lek3 250 mg", "1 kapsułka"));
+
+        if (containerJson != null && !containerJson.isEmpty()) {
+            DeviceDetailsResponse.ContainerConfig container =
+                    new com.google.gson.Gson().fromJson(containerJson, DeviceDetailsResponse.ContainerConfig.class);
+
+            if (container != null && container.medicine != null) {
+                for (DeviceDetailsResponse.MedicineItem m : container.medicine) {
+                    String name = (m.name != null) ? m.name : "Lek";
+                    String doseText;
+                    if (m.dose == 1) {
+                        doseText = "1 kapsułka";
+                    } else if (m.dose >= 2 && m.dose <= 4) {
+                        doseText = m.dose + " kapsułki";
+                    } else {
+                        doseText = m.dose + " kapsułek";
+                    }
+                    medications.add(new Medication(name, doseText));
+                }
+            }
+        }
+        // ======= /NOWE =======
 
         MedicationAdapter adapter = new MedicationAdapter(this, medications);
         recyclerView.setAdapter(adapter);

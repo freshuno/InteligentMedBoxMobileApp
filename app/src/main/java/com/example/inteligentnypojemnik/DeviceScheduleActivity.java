@@ -32,47 +32,52 @@ public class DeviceScheduleActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.weekdays_recycler_view);
         MaterialButton statsButton = findViewById(R.id.button_view_statistics);
 
-        // Odbierz ID i Nazwę
         deviceName = getIntent().getStringExtra("DEVICE_NAME");
         deviceId = getIntent().getIntExtra("DEVICE_ID", -1);
 
-        if (deviceName != null) {
-            headerTitle.setText(deviceName);
-        }
+        if (deviceName != null) headerTitle.setText(deviceName);
 
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
+        backButton.setOnClickListener(v -> finish());
+        statsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, DeviceStatisticsActivity.class);
+            intent.putExtra("DEVICE_ID", deviceId);
+            startActivity(intent);
         });
 
-        statsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(DeviceScheduleActivity.this, DeviceStatisticsActivity.class);
-                intent.putExtra("DEVICE_ID", deviceId); // Przekaż ID dalej
-                startActivity(intent);
-            }
-        });
+        // 1) pobierz szczegóły urządzenia
+        RetrofitClient.getApiService(this).getDeviceDetails(deviceId)
+                .enqueue(new retrofit2.Callback<DeviceDetailsResponse>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<DeviceDetailsResponse> call,
+                                           retrofit2.Response<DeviceDetailsResponse> resp) {
+                        if (!resp.isSuccessful() || resp.body() == null) {
+                            android.widget.Toast.makeText(DeviceScheduleActivity.this,
+                                    "Błąd pobierania urządzenia", android.widget.Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        DeviceDetailsResponse details = resp.body();
+                        String deviceJson = new com.google.gson.Gson().toJson(details);
 
-        List<String> weekdays = new ArrayList<>();
-        weekdays.add("Poniedziałek");
-        weekdays.add("Wtorek");
-        weekdays.add("Środa");
-        weekdays.add("Czwartek");
-        weekdays.add("Piątek");
-        weekdays.add("Sobota");
-        weekdays.add("Niedziela");
+                        // 2) ustaw listę dni – na razie sam tekst, dane przekażemy w JSON
+                        java.util.List<String> weekdays = java.util.Arrays.asList(
+                                "Poniedziałek","Wtorek","Środa","Czwartek","Piątek","Sobota","Niedziela"
+                        );
+                        WeekdayAdapter adapter = new WeekdayAdapter(
+                                DeviceScheduleActivity.this, weekdays, deviceName, deviceId, deviceJson
+                        );
+                        recyclerView.setLayoutManager(new LinearLayoutManager(DeviceScheduleActivity.this));
+                        recyclerView.setAdapter(adapter);
+                    }
 
-        WeekdayAdapter adapter = new WeekdayAdapter(this, weekdays, deviceName);
-
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                    @Override public void onFailure(retrofit2.Call<DeviceDetailsResponse> call, Throwable t) {
+                        android.widget.Toast.makeText(DeviceScheduleActivity.this,
+                                "Błąd sieci: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            Insets sb = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(sb.left, sb.top, sb.right, sb.bottom);
             return insets;
         });
     }

@@ -27,6 +27,14 @@ public class CompartmentAdapter extends RecyclerView.Adapter<CompartmentAdapter.
         return new CompartmentViewHolder(view);
     }
 
+    public interface OnItemClickListener {
+        void onClick(Compartment c);
+    }
+    private OnItemClickListener onItemClickListener;
+    public void setOnItemClickListener(OnItemClickListener l) {
+        this.onItemClickListener = l;
+    }
+
     @Override
     public void onBindViewHolder(@NonNull CompartmentViewHolder holder, int position) {
         Compartment compartment = compartmentList.get(position);
@@ -38,15 +46,9 @@ public class CompartmentAdapter extends RecyclerView.Adapter<CompartmentAdapter.
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Otwórz nowy ekran szczegółów
-                Intent intent = new Intent(context, CompartmentDetailsActivity.class);
-
-                // Przekaż wszystkie dane, których potrzebuje nowy ekran
-                intent.putExtra("COMPARTMENT_NAME", compartment.getName());
-                intent.putExtra("TIME", compartment.getTime());
-                intent.putExtra("MED_COUNT", compartment.getMedCount());
-
-                context.startActivity(intent);
+                if (onItemClickListener != null) {
+                    onItemClickListener.onClick(compartment);
+                }
             }
         });
     }

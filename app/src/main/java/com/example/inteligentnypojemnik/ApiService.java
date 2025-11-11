@@ -25,4 +25,7 @@ public interface ApiService {
 
     @POST("api/auth/token/refresh")
     Call<LoginResponse> refreshToken(@Body RefreshRequest body);
+
+    @GET("api/devices/{paired_device_id}")
+    Call<DeviceDetailsResponse> getDeviceDetails(@Path("paired_device_id") int deviceId);
 }
