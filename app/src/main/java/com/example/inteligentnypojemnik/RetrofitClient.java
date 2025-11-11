@@ -1,49 +1,111 @@
 package com.example.inteligentnypojemnik;
 
 import android.content.Context;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import okhttp3.Authenticator;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
+import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
     private static final String BASE_URL = "https://65.21.228.23:8000/";
-    private static Retrofit retrofit = null;
 
-    public static ApiService getApiService(Context context) {
-        if (retrofit == null) {
-            OkHttpClient httpClient = getUnsafeOkHttpClient(context);
+    private static Retrofit mainRetrofit = null;
+    private static Retrofit authRetrofit = null; // do /token/refresh
+    private static ApiService apiService = null;
+    private static ApiService authApiService = null;
 
-            retrofit = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .client(httpClient)
-                    .addConverterFactory(GsonConverterFactory.create())
+    // --- Authenticator (wewnętrzny) ---
+    private static class TokenAuthenticator implements Authenticator {
+        private final SessionManager session;
+        private final ApiService authApi;
+
+        TokenAuthenticator(SessionManager session, ApiService authApi) {
+            this.session = session;
+            this.authApi = authApi;
+        }
+
+        @Override
+        public Request authenticate(Route route, Response response) throws IOException {
+            // uniknij pętli: jeśli już raz próbowaliśmy
+            if (response.request().header("Authorization-Retried") != null) return null;
+
+            String refresh = session.getRefreshToken();
+            if (refresh == null || refresh.isEmpty()) return null;
+
+            retrofit2.Response<LoginResponse> r =
+                    authApi.refreshToken(new RefreshRequest(refresh)).execute();
+
+            if (!r.isSuccessful() || r.body() == null || r.body().getAccess() == null) {
+                session.clearSession();
+                return null; // UI zobaczy 401 → wyloguj
+            }
+
+            String newAccess = r.body().getAccess();
+            String newRefresh = r.body().getRefresh() != null ? r.body().getRefresh() : refresh;
+            session.saveTokens(newAccess, newRefresh);
+
+            return response.request().newBuilder()
+                    .header("Authorization", "Bearer " + newAccess)
+                    .header("Authorization-Retried", "1")
                     .build();
         }
-        return retrofit.create(ApiService.class);
     }
 
+    public static ApiService getApiService(Context context) {
+        if (apiService == null) {
+            SessionManager session = new SessionManager(context.getApplicationContext());
+
+            // --- klient do refresh (BEZ interceptorów) ---
+            OkHttpClient authOkHttp = getUnsafeOkHttpClient(null); // bez AuthInterceptor
+            authRetrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .client(authOkHttp)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            authApiService = authRetrofit.create(ApiService.class);
+
+            // --- klient główny (z Interceptorem + Authenticator) ---
+            OkHttpClient mainOkHttp = getUnsafeOkHttpClient(context).newBuilder()
+                    .addInterceptor(new AuthInterceptor(context))
+                    .authenticator(new TokenAuthenticator(session, authApiService))
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .build();
+
+            mainRetrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .client(mainOkHttp)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            apiService = mainRetrofit.create(ApiService.class);
+        }
+        return apiService;
+    }
+
+    // --- Twój istniejący "unsafe" klient, przerobiony tak,
+    //     by DAŁO SIĘ zbudować wersję z i bez interceptora ---
     private static OkHttpClient getUnsafeOkHttpClient(Context context) {
         try {
             final TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-                        }
-
-                        @Override
-                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
-                        }
-
-                        @Override
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                            return new java.security.cert.X509Certificate[]{};
-                        }
+                        @Override public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                        @Override public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {}
+                        @Override public java.security.cert.X509Certificate[] getAcceptedIssuers() { return new java.security.cert.X509Certificate[]{}; }
                     }
             };
 
@@ -51,12 +113,14 @@ public class RetrofitClient {
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-            OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-            builder.hostnameVerifier((hostname, session) -> true);
+            OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                    .sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0])
+                    .hostnameVerifier((hostname, session) -> true);
 
-            builder.addInterceptor(new AuthInterceptor(context));
-
+            if (context != null) {
+                // tylko w głównym kliencie chcemy interceptor (auth klient będzie bez)
+                // UWAGA: AuthInterceptor dodajemy później w .newBuilder() – patrz wyżej
+            }
             return builder.build();
         } catch (Exception e) {
             throw new RuntimeException(e);

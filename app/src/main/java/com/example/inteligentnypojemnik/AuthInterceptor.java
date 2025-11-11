@@ -8,25 +8,30 @@ import okhttp3.Response;
 
 public class AuthInterceptor implements Interceptor {
 
-    private SessionManager sessionManager;
+    private final SessionManager sessionManager;
 
     public AuthInterceptor(Context context) {
-        sessionManager = new SessionManager(context);
+        // najlepiej używać applicationContext
+        this.sessionManager = new SessionManager(context.getApplicationContext());
     }
 
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request originalRequest = chain.request();
-        String token = sessionManager.getAuthToken();
+        String path = originalRequest.url().encodedPath();
 
-        if (token != null) {
-            Request.Builder builder = originalRequest.newBuilder()
-                    .header("Authorization", "Bearer " + token);
-
-            Request newRequest = builder.build();
-            return chain.proceed(newRequest);
+        // NIE doklejaj Bearera do /api/auth/token/*
+        if (path.startsWith("/api/auth/token/")) {
+            return chain.proceed(originalRequest);
         }
 
+        String token = sessionManager.getAuthToken();
+        if (token != null && !token.isEmpty()) {
+            Request newRequest = originalRequest.newBuilder()
+                    .header("Authorization", "Bearer " + token)
+                    .build();
+            return chain.proceed(newRequest);
+        }
         return chain.proceed(originalRequest);
     }
 }

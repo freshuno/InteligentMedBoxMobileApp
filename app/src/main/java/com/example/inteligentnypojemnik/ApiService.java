@@ -22,4 +22,7 @@ public interface ApiService {
 
     @GET("api/devices/{paired_device_id}/history")
     Call<EventHistoryResponse> getDeviceHistory(@Path("paired_device_id") int deviceId);
+
+    @POST("api/auth/token/refresh")
+    Call<LoginResponse> refreshToken(@Body RefreshRequest body);
 }
