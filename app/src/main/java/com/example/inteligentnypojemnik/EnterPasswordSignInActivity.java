@@ -66,7 +66,7 @@ public class EnterPasswordSignInActivity extends AppCompatActivity {
 
         LoginRequest request = new LoginRequest(username, password);
 
-        RetrofitClient.getApiService().loginUser(request).enqueue(new Callback<LoginResponse>() {
+        RetrofitClient.getApiService(EnterPasswordSignInActivity.this).loginUser(request).enqueue(new Callback<LoginResponse>() {
 
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {

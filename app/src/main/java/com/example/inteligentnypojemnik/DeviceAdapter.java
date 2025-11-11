@@ -47,16 +47,17 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         }
 
         // --- POCZĄTEK NOWEGO KODU ---
+        // ... wewnątrz onBindViewHolder() w DeviceAdapter.java ...
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Otwórz nowy ekran harmonogramu
                 Intent intent = new Intent(context, DeviceScheduleActivity.class);
-                // Przekaż nazwę pudełka do nagłówka
                 intent.putExtra("DEVICE_NAME", device.getName());
+                intent.putExtra("DEVICE_ID", device.getId()); // DODAJEMY ID
                 context.startActivity(intent);
             }
         });
+// ...
         // --- KONIEC NOWEGO KODU ---
     }
 

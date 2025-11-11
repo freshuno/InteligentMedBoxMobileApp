@@ -1,11 +1,11 @@
 package com.example.inteligentnypojemnik;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
@@ -38,8 +38,15 @@ public class CompartmentAdapter extends RecyclerView.Adapter<CompartmentAdapter.
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // W przyszłości otworzy to edycję tej przegrody
-                Toast.makeText(context, "Wybrano: " + compartment.getName(), Toast.LENGTH_SHORT).show();
+                // Otwórz nowy ekran szczegółów
+                Intent intent = new Intent(context, CompartmentDetailsActivity.class);
+
+                // Przekaż wszystkie dane, których potrzebuje nowy ekran
+                intent.putExtra("COMPARTMENT_NAME", compartment.getName());
+                intent.putExtra("TIME", compartment.getTime());
+                intent.putExtra("MED_COUNT", compartment.getMedCount());
+
+                context.startActivity(intent);
             }
         });
     }

@@ -2,8 +2,11 @@ package com.example.inteligentnypojemnik;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
+
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
 import androidx.activity.EdgeToEdge;
@@ -15,6 +18,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CaregiverPanelActivity extends AppCompatActivity {
 
@@ -42,7 +49,8 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         logoutButton = findViewById(R.id.button_logout);
 
         preparePatientList();
-        prepareDeviceList();
+
+        deviceList = new ArrayList<>();
 
         patientAdapter = new PatientAdapter(this, patientList);
         deviceAdapter = new DeviceAdapter(this, deviceList, true);
@@ -90,6 +98,14 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (toggleGroup.getCheckedButtonId() == R.id.toggle_devices) {
+            fetchMyDevices();
+        }
+    }
+
     private void preparePatientList() {
         patientList = new ArrayList<>();
         patientList.add(new Patient("AK", "Anna Kowalska", "2 urządzenia"));
@@ -97,10 +113,40 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         patientList.add(new Patient("MW", "Maria Wiśniewska", "3 urządzenia"));
     }
 
-    private void prepareDeviceList() {
-        deviceList = new ArrayList<>();
-        deviceList.add(new Device("Pudełko1", "Anna Kowalska", "Dzisiaj, 18:00", "4", "Uzupełniono 3 dni temu"));
-        deviceList.add(new Device("Pudełko3", "Jan Nowak", "Dzisiaj, 20:00", "2", "Uzupełniono 1 dzień temu"));
+    private void fetchMyDevices() {
+        RetrofitClient.getApiService(this).getMyDevices().enqueue(new Callback<MyDevicesResponse>() {
+            @Override
+            public void onResponse(Call<MyDevicesResponse> call, Response<MyDevicesResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+
+                    deviceList.clear();
+
+                    // ... wewnątrz fetchMyDevices() ...
+                    for (MyDevice apiDevice : response.body().getDevices()) {
+                        deviceList.add(new Device(
+                                apiDevice.getId(), // DODAJEMY ID
+                                apiDevice.getLabel(),
+                                apiDevice.getSeniorDisplayName(),
+                                "Brak danych",
+                                "Brak danych",
+                                "Brak danych"
+                        ));
+                    }
+// ...
+
+                    deviceAdapter.notifyDataSetChanged();
+
+                } else {
+                    Toast.makeText(CaregiverPanelActivity.this, "Nie udało się pobrać urządzeń", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MyDevicesResponse> call, Throwable t) {
+                Log.e("API_FAILURE", "Błąd pobierania urządzeń: " + t.getMessage());
+                Toast.makeText(CaregiverPanelActivity.this, "Błąd połączenia: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void showPatientView() {
@@ -111,5 +157,6 @@ public class CaregiverPanelActivity extends AppCompatActivity {
     private void showDeviceView() {
         recyclerView.setAdapter(deviceAdapter);
         addDeviceButton.setVisibility(View.VISIBLE);
+        fetchMyDevices();
     }
 }

@@ -1,10 +1,10 @@
 package com.example.inteligentnypojemnik;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
+import android.widget.Toast;
 import com.google.android.material.button.MaterialButton;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,29 +16,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DeviceScheduleActivity extends AppCompatActivity {
+public class CompartmentSettingsActivity extends AppCompatActivity {
 
-    private int deviceId = -1; // Zmienna do przechowania ID
-    private String deviceName = "Pudełko";
+    private List<Medication> medicationList;
+    private EditMedicationAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_device_schedule);
+        setContentView(R.layout.activity_compartment_settings);
 
         ImageButton backButton = findViewById(R.id.buttonBack);
-        TextView headerTitle = findViewById(R.id.device_name_header);
-        RecyclerView recyclerView = findViewById(R.id.weekdays_recycler_view);
-        MaterialButton statsButton = findViewById(R.id.button_view_statistics);
-
-        // Odbierz ID i Nazwę
-        deviceName = getIntent().getStringExtra("DEVICE_NAME");
-        deviceId = getIntent().getIntExtra("DEVICE_ID", -1);
-
-        if (deviceName != null) {
-            headerTitle.setText(deviceName);
-        }
+        MaterialButton saveButton = findViewById(R.id.button_save);
+        RecyclerView recyclerView = findViewById(R.id.edit_med_recycler_view);
 
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -47,26 +38,23 @@ public class DeviceScheduleActivity extends AppCompatActivity {
             }
         });
 
-        statsButton.setOnClickListener(new View.OnClickListener() {
+        saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(DeviceScheduleActivity.this, DeviceStatisticsActivity.class);
-                intent.putExtra("DEVICE_ID", deviceId); // Przekaż ID dalej
-                startActivity(intent);
+                // W przyszłości zapisze zmiany do API
+                Toast.makeText(CompartmentSettingsActivity.this, "Zapisano zmiany", Toast.LENGTH_SHORT).show();
+                finish();
             }
         });
 
-        List<String> weekdays = new ArrayList<>();
-        weekdays.add("Poniedziałek");
-        weekdays.add("Wtorek");
-        weekdays.add("Środa");
-        weekdays.add("Czwartek");
-        weekdays.add("Piątek");
-        weekdays.add("Sobota");
-        weekdays.add("Niedziela");
+        // Przygotuj listę leków "na sztywno"
+        medicationList = new ArrayList<>();
+        medicationList.add(new Medication("Lek1 500 mg", "1 kapsułka"));
 
-        WeekdayAdapter adapter = new WeekdayAdapter(this, weekdays, deviceName);
+        // W przyszłości dodamy logikę dla "Dodaj lek"
+        // medicationList.add(new Medication("Lek2 250 mg", "2 kapsułki"));
 
+        adapter = new EditMedicationAdapter(this, medicationList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 

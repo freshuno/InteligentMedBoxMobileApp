@@ -80,7 +80,7 @@ public class CreatePasswordActivity extends AppCompatActivity {
 
         RegisterRequest request = new RegisterRequest(displayName, username, email, password);
 
-        RetrofitClient.getApiService().registerUser(request).enqueue(new Callback<RegisterResponse>() {
+        RetrofitClient.getApiService(CreatePasswordActivity.this).registerUser(request).enqueue(new Callback<RegisterResponse>() {
 
             @Override
             public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {
@@ -97,7 +97,6 @@ public class CreatePasswordActivity extends AppCompatActivity {
 
 
                 } else {
-                    // Błąd serwera (np. username już istnieje)
                     String errorMsg = "Błąd rejestracji: " + response.code() + " " + response.message();
                     Log.e("API_ERROR", errorMsg);
                     Toast.makeText(CreatePasswordActivity.this, errorMsg, Toast.LENGTH_LONG).show();
