@@ -41,18 +41,14 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // W przyszłości zapisze zmiany do API
                 Toast.makeText(CompartmentSettingsActivity.this, "Zapisano zmiany", Toast.LENGTH_SHORT).show();
                 finish();
             }
         });
 
-        // Przygotuj listę leków "na sztywno"
         medicationList = new ArrayList<>();
         medicationList.add(new Medication("Lek1 500 mg", "1 kapsułka"));
 
-        // W przyszłości dodamy logikę dla "Dodaj lek"
-        // medicationList.add(new Medication("Lek2 250 mg", "2 kapsułki"));
 
         adapter = new EditMedicationAdapter(this, medicationList);
         recyclerView.setAdapter(adapter);

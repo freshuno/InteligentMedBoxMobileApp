@@ -1,7 +1,7 @@
 package com.example.inteligentnypojemnik;
 
 public class Device {
-    private int id; // DODANE
+    private int id;
     private String name;
     private String patientName;
     private String nextDose;
@@ -9,7 +9,7 @@ public class Device {
     private String status;
 
     public Device(int id, String name, String patientName, String nextDose, String medCount, String status) {
-        this.id = id; // DODANE
+        this.id = id;
         this.name = name;
         this.patientName = patientName;
         this.nextDose = nextDose;
@@ -17,7 +17,7 @@ public class Device {
         this.status = status;
     }
 
-    public int getId() { return id; } // DODANE
+    public int getId() { return id; }
     public String getName() { return name; }
     public String getPatientName() { return patientName; }
     public String getNextDose() { return nextDose; }

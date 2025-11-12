@@ -49,7 +49,6 @@ public class WeekdayAdapter extends RecyclerView.Adapter<WeekdayAdapter.WeekdayV
             intent.putExtra("DEVICE_ID", deviceId);
             intent.putExtra("DEVICE_JSON", deviceJson);
 
-            // mapowanie PL → ENG
             String[] keysPl = {"Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"};
             String[] keysEn = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};
 

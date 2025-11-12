@@ -111,7 +111,6 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
                     allApiEvents.clear();
                     allApiEvents.addAll(response.body().getEvents());
 
-                    // Sortowanie po rzeczywistym czasie (od najwcześniejszych)
                     Collections.sort(allApiEvents, (a, b) -> {
                         Date da = parseTimestamp(a.getTimestamp());
                         Date db = parseTimestamp(b.getTimestamp());
@@ -146,7 +145,7 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
 
             if (eventDate != null && eventDate.equals(selectedDate)) {
                 String time = formatTimestampToTime(item.getTimestamp());
-                String desc = getFriendlyEventName(item.getType()); // jeśli masz getTypeValue(), podmień tutaj
+                String desc = getFriendlyEventName(item.getType());
 
                 boolean isError = desc.toLowerCase().contains("niepoprawna");
                 displayedActivities.add(new DeviceActivity(time, desc, isError));
@@ -158,7 +157,6 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
     }
 
     private String getFriendlyEventName(String eventType) {
-        // Traktuj brak, "-", "T" i "STRING" jako zwykłą aktywność pudełka
         if (eventType == null ||
                 eventType.equalsIgnoreCase("T") ||
                 eventType.equals("-") ||
@@ -178,25 +176,19 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Parser ISO8601 z obsługą Z/offsetu i frakcji sekund.
-     * Preferuje java.time (Instant/OffsetDateTime), a na końcu ma bezpieczny fallback.
-     */
     private Date parseTimestamp(String ts) {
         if (ts == null || ts.isEmpty()) return null;
 
-        // java.time – poprawnie uwzględnia 'Z' i offset
         try {
-            Instant instant = Instant.parse(ts); // np. 2025-11-09T21:49:00Z lub z ułamkami
+            Instant instant = Instant.parse(ts);
             return Date.from(instant);
         } catch (Exception ignored) { }
 
         try {
-            OffsetDateTime odt = OffsetDateTime.parse(ts); // np. 2025-11-09T21:49:00+00:00
+            OffsetDateTime odt = OffsetDateTime.parse(ts);
             return Date.from(odt.toInstant());
         } catch (Exception ignored) { }
 
-        // Fallbacki na stare wzorce, gdyby przyszło coś niestandardowego
         try {
             SimpleDateFormat formatWithMillis =
                     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.US);

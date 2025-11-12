@@ -42,12 +42,10 @@ public class CompartmentScheduleActivity extends AppCompatActivity {
 
         backButton.setOnClickListener(v -> finish());
 
-        // 1) Parse JSON → obiekt
         DeviceDetailsResponse details =
                 new com.google.gson.Gson().fromJson(deviceJson, DeviceDetailsResponse.class);
         DeviceDetailsResponse.DayConfig day = details.configuration.get(dayKey);
 
-        // 2) Zbuduj listę przegród
         List<Compartment> compartments = new ArrayList<>();
         List<Map.Entry<String, DeviceDetailsResponse.ContainerConfig>> list =
                 new ArrayList<>(day != null && day.containers != null ? day.containers.entrySet()
@@ -65,20 +63,18 @@ public class CompartmentScheduleActivity extends AppCompatActivity {
             String time = (c != null && c.reminder_time != null) ? c.reminder_time : "—";
             String count = (c != null && c.medicine != null) ? String.valueOf(c.medicine.size()) : "0";
 
-            // zapisujemy JSON kontenera w modelu, żeby klik przejścia mógł go przekazać dalej
             Compartment comp = new Compartment(title, time, count);
-            comp.setExtraJson(new com.google.gson.Gson().toJson(c)); // dodaj pole extraJson w klasie Compartment (String)
+            comp.setExtraJson(new com.google.gson.Gson().toJson(c));
             compartments.add(comp);
         }
 
-        // 3) Adapter i klik → szczegóły przegrody
         CompartmentAdapter adapter = new CompartmentAdapter(this, compartments);
         adapter.setOnItemClickListener(comp -> {
             Intent intent = new Intent(this, CompartmentDetailsActivity.class);
             intent.putExtra("COMPARTMENT_NAME", comp.getName());
             intent.putExtra("TIME", comp.getTime());
             intent.putExtra("MED_COUNT", comp.getMedCount());
-            intent.putExtra("CONTAINER_JSON", comp.getExtraJson()); // to przekażemy do listy leków
+            intent.putExtra("CONTAINER_JSON", comp.getExtraJson());
             startActivity(intent);
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

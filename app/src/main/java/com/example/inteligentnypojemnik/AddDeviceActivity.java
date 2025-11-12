@@ -79,7 +79,6 @@ public class AddDeviceActivity extends AppCompatActivity {
                     Toast.makeText(AddDeviceActivity.this, "Urządzenie dodane!", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
-                    // --- POPRAWKA TUTAJ ---
                     String errorMsg = "Błąd parowania: " + response.code() + " " + response.message();
                     Log.e("API_ERROR", errorMsg);
                     Toast.makeText(AddDeviceActivity.this, errorMsg, Toast.LENGTH_LONG).show();

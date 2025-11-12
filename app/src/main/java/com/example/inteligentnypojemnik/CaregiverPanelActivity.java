@@ -121,7 +121,6 @@ public class CaregiverPanelActivity extends AppCompatActivity {
 
                     deviceList.clear();
 
-                    // ... wewnątrz fetchMyDevices() ...
                     for (MyDevice apiDevice : response.body().getDevices()) {
                         deviceList.add(new Device(
                                 apiDevice.getId(), // DODAJEMY ID

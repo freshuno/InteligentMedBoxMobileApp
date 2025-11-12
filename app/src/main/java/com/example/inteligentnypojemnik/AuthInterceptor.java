@@ -11,7 +11,6 @@ public class AuthInterceptor implements Interceptor {
     private final SessionManager sessionManager;
 
     public AuthInterceptor(Context context) {
-        // najlepiej używać applicationContext
         this.sessionManager = new SessionManager(context.getApplicationContext());
     }
 
@@ -20,7 +19,6 @@ public class AuthInterceptor implements Interceptor {
         Request originalRequest = chain.request();
         String path = originalRequest.url().encodedPath();
 
-        // NIE doklejaj Bearera do /api/auth/token/*
         if (path.startsWith("/api/auth/token/")) {
             return chain.proceed(originalRequest);
         }

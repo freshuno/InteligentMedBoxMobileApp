@@ -31,12 +31,9 @@ public class PatientDevicesActivity extends AppCompatActivity {
 
         RecyclerView devicesRecyclerView = findViewById(R.id.devices_recycler_view);
 
-        // ... wewnątrz PatientDevicesActivity.java ...
         List<Device> deviceList = new ArrayList<>();
-        // Dodajemy fałszywe ID (np. 1 i 2)
         deviceList.add(new Device(1, "Pudełko1", "", "Dzisiaj, 18:00", "4", "Uzupełniono 3 dni temu"));
         deviceList.add(new Device(2, "Pudełko2", "", "Dzisiaj, 20:00", "2", "Uzupełniono 1 dzień temu"));
-// ...
 
         DeviceAdapter adapter = new DeviceAdapter(this, deviceList, false);
 

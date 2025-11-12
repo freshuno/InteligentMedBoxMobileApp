@@ -47,7 +47,6 @@ public class CompartmentDetailsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // ======= NOWE: pobierz dane przegrody z JSON i zbuduj listę leków =======
         String containerJson = getIntent().getStringExtra("CONTAINER_JSON");
 
         List<Medication> medications = new ArrayList<>();
@@ -71,7 +70,6 @@ public class CompartmentDetailsActivity extends AppCompatActivity {
                 }
             }
         }
-        // ======= /NOWE =======
 
         MedicationAdapter adapter = new MedicationAdapter(this, medications);
         recyclerView.setAdapter(adapter);

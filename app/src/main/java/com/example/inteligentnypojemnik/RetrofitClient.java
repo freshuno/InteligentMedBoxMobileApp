@@ -24,11 +24,10 @@ public class RetrofitClient {
     private static final String BASE_URL = "https://65.21.228.23:8000/";
 
     private static Retrofit mainRetrofit = null;
-    private static Retrofit authRetrofit = null; // do /token/refresh
+    private static Retrofit authRetrofit = null;
     private static ApiService apiService = null;
     private static ApiService authApiService = null;
 
-    // --- Authenticator (wewnętrzny) ---
     private static class TokenAuthenticator implements Authenticator {
         private final SessionManager session;
         private final ApiService authApi;
@@ -40,7 +39,6 @@ public class RetrofitClient {
 
         @Override
         public Request authenticate(Route route, Response response) throws IOException {
-            // uniknij pętli: jeśli już raz próbowaliśmy
             if (response.request().header("Authorization-Retried") != null) return null;
 
             String refresh = session.getRefreshToken();
@@ -51,7 +49,7 @@ public class RetrofitClient {
 
             if (!r.isSuccessful() || r.body() == null || r.body().getAccess() == null) {
                 session.clearSession();
-                return null; // UI zobaczy 401 → wyloguj
+                return null;
             }
 
             String newAccess = r.body().getAccess();
@@ -69,7 +67,6 @@ public class RetrofitClient {
         if (apiService == null) {
             SessionManager session = new SessionManager(context.getApplicationContext());
 
-            // --- klient do refresh (BEZ interceptorów) ---
             OkHttpClient authOkHttp = getUnsafeOkHttpClient(null); // bez AuthInterceptor
             authRetrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
@@ -78,7 +75,6 @@ public class RetrofitClient {
                     .build();
             authApiService = authRetrofit.create(ApiService.class);
 
-            // --- klient główny (z Interceptorem + Authenticator) ---
             OkHttpClient mainOkHttp = getUnsafeOkHttpClient(context).newBuilder()
                     .addInterceptor(new AuthInterceptor(context))
                     .authenticator(new TokenAuthenticator(session, authApiService))
@@ -97,8 +93,6 @@ public class RetrofitClient {
         return apiService;
     }
 
-    // --- Twój istniejący "unsafe" klient, przerobiony tak,
-    //     by DAŁO SIĘ zbudować wersję z i bez interceptora ---
     private static OkHttpClient getUnsafeOkHttpClient(Context context) {
         try {
             final TrustManager[] trustAllCerts = new TrustManager[]{
@@ -118,8 +112,7 @@ public class RetrofitClient {
                     .hostnameVerifier((hostname, session) -> true);
 
             if (context != null) {
-                // tylko w głównym kliencie chcemy interceptor (auth klient będzie bez)
-                // UWAGA: AuthInterceptor dodajemy później w .newBuilder() – patrz wyżej
+                // dsada
             }
             return builder.build();
         } catch (Exception e) {

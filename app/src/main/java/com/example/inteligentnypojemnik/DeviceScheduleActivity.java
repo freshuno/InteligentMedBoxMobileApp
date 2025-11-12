@@ -18,7 +18,7 @@ import java.util.List;
 
 public class DeviceScheduleActivity extends AppCompatActivity {
 
-    private int deviceId = -1; // Zmienna do przechowania ID
+    private int deviceId = -1;
     private String deviceName = "Pudełko";
 
     @Override
@@ -44,7 +44,6 @@ public class DeviceScheduleActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // 1) pobierz szczegóły urządzenia
         RetrofitClient.getApiService(this).getDeviceDetails(deviceId)
                 .enqueue(new retrofit2.Callback<DeviceDetailsResponse>() {
                     @Override
@@ -58,7 +57,6 @@ public class DeviceScheduleActivity extends AppCompatActivity {
                         DeviceDetailsResponse details = resp.body();
                         String deviceJson = new com.google.gson.Gson().toJson(details);
 
-                        // 2) ustaw listę dni – na razie sam tekst, dane przekażemy w JSON
                         java.util.List<String> weekdays = java.util.Arrays.asList(
                                 "Poniedziałek","Wtorek","Środa","Czwartek","Piątek","Sobota","Niedziela"
                         );
