@@ -4,6 +4,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path; // Import
 
 public interface ApiService {
@@ -31,4 +32,10 @@ public interface ApiService {
 
     @GET("api/devices/my-dozes")
     Call<MyDosesResponse> getMyDoses();
+
+    @PUT("api/devices/{paired_device_id}/config")
+    Call<DeviceDetailsResponse> updateConfig(
+            @Path("paired_device_id") int deviceId,
+            @Body UpdateConfigRequest body
+    );
 }

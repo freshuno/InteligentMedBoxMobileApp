@@ -6,6 +6,7 @@ public class Compartment {
     private String medCount;
 
     private String extraJson;
+    private String compartmentKey;
 
     public Compartment(String name, String time, String medCount) {
         this.name = name;
@@ -19,4 +20,7 @@ public class Compartment {
 
     public String getExtraJson() { return extraJson; }
     public void setExtraJson(String extraJson) { this.extraJson = extraJson; }
+
+    public String getCompartmentKey() { return compartmentKey; }
+    public void setCompartmentKey(String compartmentKey) { this.compartmentKey = compartmentKey; }
 }
