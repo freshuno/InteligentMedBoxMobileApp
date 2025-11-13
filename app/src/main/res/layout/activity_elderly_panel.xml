@@ -78,7 +78,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Lek1 500 mg"
+                    android:text="Ladowanie..."
                     android:textColor="@android:color/black"
                     android:textSize="18sp" />
 
@@ -88,7 +88,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:layout_marginBottom="16dp"
-                    android:text="Godzina: 12:00 - TERAZ"
+                    android:text="Godzina: ..."
                     android:textColor="@android:color/black"
                     android:textSize="16sp" />
 
@@ -118,23 +118,13 @@
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
-                <LinearLayout
-                    android:id="@+id/medications_container"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/doses_recycler_view"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    tools:listitem="@layout/item_dose"
+                    tools:itemCount="3"/>
 
-                    <TextView
-                        style="@style/MedicationItem"
-                        android:text="8:00 nazwa_leku" />
-                    <TextView
-                        style="@style/MedicationItem"
-                        android:text="12:00 nazwa_leku" />
-                    <TextView
-                        style="@style/MedicationItem"
-                        android:text="18:00 nazwa_leku" />
-
-                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

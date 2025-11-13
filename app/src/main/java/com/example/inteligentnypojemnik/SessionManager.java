@@ -8,6 +8,7 @@ public class SessionManager {
     private static final String SHARED_PREF_NAME = "app_session";
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
+    private static final String KEY_USERNAME = "username";
 
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
@@ -31,6 +32,15 @@ public class SessionManager {
 
     public String getRefreshToken() {
         return prefs.getString(KEY_REFRESH_TOKEN, null);
+    }
+
+    public void saveUsername(String username) {
+        editor.putString(KEY_USERNAME, username);
+        editor.apply();
+    }
+
+    public String getUsername() {
+        return prefs.getString(KEY_USERNAME, "Użytkownik");
     }
 
     public void clearSession() {

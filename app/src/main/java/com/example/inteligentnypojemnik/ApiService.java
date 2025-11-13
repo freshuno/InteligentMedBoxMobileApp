@@ -28,4 +28,7 @@ public interface ApiService {
 
     @GET("api/devices/{paired_device_id}")
     Call<DeviceDetailsResponse> getDeviceDetails(@Path("paired_device_id") int deviceId);
+
+    @GET("api/devices/my-dozes")
+    Call<MyDosesResponse> getMyDoses();
 }
