@@ -40,6 +40,7 @@
                 android:textSize="18sp"
                 android:layout_marginStart="8dp" />
         </LinearLayout>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -69,14 +70,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Wpisz nazwę osoby, do której ma być przypisane urządzenie"
+                android:text="Wpisz nazwę osoby (senior_username)"
                 android:textColor="@android:color/black"
                 android:layout_marginBottom="8dp"/>
             <EditText
                 android:id="@+id/input_patient_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="..."
+                android:hint="np. JanKowalski123"
                 android:background="@drawable/edit_text_background"
                 android:padding="16dp"
                 android:layout_marginBottom="16dp"/>
@@ -84,7 +85,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Wpisz serial number urządzenia"
+                android:text="Wpisz serial number urządzenia (physical_device_id)"
                 android:textColor="@android:color/black"
                 android:layout_marginBottom="8dp"/>
             <EditText
@@ -99,14 +100,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Wpisz register number urządzenia"
+                android:text="Wpisz nazwę pudełka (label)"
                 android:textColor="@android:color/black"
                 android:layout_marginBottom="8dp"/>
             <EditText
-                android:id="@+id/input_register_number"
+                android:id="@+id/input_label"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="..."
+                android:hint="np. Pudełko Jana"
                 android:background="@drawable/edit_text_background"
                 android:padding="16dp"
                 android:layout_marginBottom="32dp"/>
@@ -115,7 +116,7 @@
                 android:id="@+id/button_generate_key"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Wygeneruj klucz"
+                android:text="Dodaj urządzenie"
                 android:textColor="@android:color/black"
                 android:padding="16dp"
                 app:backgroundTint="#EEEEEE"

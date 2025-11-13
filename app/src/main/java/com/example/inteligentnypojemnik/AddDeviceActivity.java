@@ -20,7 +20,7 @@ import retrofit2.Response;
 
 public class AddDeviceActivity extends AppCompatActivity {
 
-    private EditText inputPatientName, inputSerial, inputRegister;
+    private EditText inputPatientName, inputSerial, inputLabel;
     private MaterialButton generateButton;
 
     @Override
@@ -33,7 +33,7 @@ public class AddDeviceActivity extends AppCompatActivity {
         generateButton = findViewById(R.id.button_generate_key);
         inputPatientName = findViewById(R.id.input_patient_name);
         inputSerial = findViewById(R.id.input_serial_number);
-        inputRegister = findViewById(R.id.input_register_number);
+        inputLabel = findViewById(R.id.input_label);
 
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -57,18 +57,14 @@ public class AddDeviceActivity extends AppCompatActivity {
     }
 
     private void pairNewDevice() {
-        String patientUsername = inputPatientName.getText().toString();
-        String serialNumber = inputSerial.getText().toString();
-        String registerNumber = inputRegister.getText().toString();
+        String seniorUsername = inputPatientName.getText().toString();
+        String physicalDeviceId = inputSerial.getText().toString();
+        String label = inputLabel.getText().toString();
 
-        if (patientUsername.isEmpty() || serialNumber.isEmpty() || registerNumber.isEmpty()) {
+        if (seniorUsername.isEmpty() || physicalDeviceId.isEmpty() || label.isEmpty()) {
             Toast.makeText(this, "Wypełnij wszystkie pola", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        String label = "Pudełko " + patientUsername;
-        String physicalDeviceId = serialNumber;
-        String seniorUsername = patientUsername;
 
         PairDeviceRequest request = new PairDeviceRequest(physicalDeviceId, seniorUsername, label);
 
