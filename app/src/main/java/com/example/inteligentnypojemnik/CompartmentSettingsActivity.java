@@ -192,7 +192,9 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
 
             containerConfig.reminder_time = newTime.isEmpty() ? null : newTime;
             containerConfig.medicine = newMedicineList;
-            containerConfig.active = !newMedicineList.isEmpty();
+
+            // USUWAMY TĘ LINIĘ:
+            // containerConfig.active = !newMedicineList.isEmpty();
 
             dayConfig.containers.put(compartmentKey, containerConfig);
 

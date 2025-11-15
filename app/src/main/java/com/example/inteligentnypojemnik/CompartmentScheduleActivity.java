@@ -1,9 +1,11 @@
 package com.example.inteligentnypojemnik;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -18,7 +20,11 @@ import java.util.Map;
 import java.util.Collections;
 import com.google.gson.Gson;
 
-public class CompartmentScheduleActivity extends AppCompatActivity {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class CompartmentScheduleActivity extends AppCompatActivity implements CompartmentAdapter.OnCompartmentActiveChangedListener {
 
     private int deviceId = -1;
     private String dayKey = "monday";
@@ -29,6 +35,7 @@ public class CompartmentScheduleActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private CompartmentAdapter adapter;
     private List<Compartment> compartments;
+    private Gson gson = new Gson();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +69,8 @@ public class CompartmentScheduleActivity extends AppCompatActivity {
     }
 
     private void loadAndDisplayCompartments(String deviceJson) {
+        this.deviceJson = deviceJson;
+
         DeviceDetailsResponse details =
                 new com.google.gson.Gson().fromJson(deviceJson, DeviceDetailsResponse.class);
         DeviceDetailsResponse.DayConfig day = details.configuration.get(dayKey);
@@ -107,6 +116,9 @@ public class CompartmentScheduleActivity extends AppCompatActivity {
 
                 startActivityForResult(intent, REQUEST_CODE_UPDATE);
             });
+
+            adapter.setOnCompartmentActiveChangedListener(this);
+
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             recyclerView.setAdapter(adapter);
         } else {
@@ -123,7 +135,61 @@ public class CompartmentScheduleActivity extends AppCompatActivity {
             if (updatedDeviceJson != null) {
                 this.deviceJson = updatedDeviceJson;
                 loadAndDisplayCompartments(updatedDeviceJson);
+
+                // Przekaż zaktualizowany JSON z powrotem do DeviceScheduleActivity
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra(EXTRA_UPDATED_JSON, updatedDeviceJson);
+                setResult(RESULT_OK, resultIntent);
             }
+        }
+    }
+
+    @Override
+    public void onCompartmentActiveChanged(String compartmentKey, boolean isActive) {
+        try {
+            DeviceDetailsResponse fullDevice = gson.fromJson(deviceJson, DeviceDetailsResponse.class);
+            DeviceDetailsResponse.Configuration config = fullDevice.configuration;
+
+            DeviceDetailsResponse.DayConfig dayConfig = config.get(dayKey);
+            if (dayConfig != null && dayConfig.containers != null) {
+                DeviceDetailsResponse.ContainerConfig container = dayConfig.containers.get(compartmentKey);
+                if (container != null) {
+                    container.active = isActive;
+                }
+            }
+
+            UpdateConfigRequest requestBody = new UpdateConfigRequest(config);
+            Log.d("API_PUT", "Zapisywanie zmiany dla przegrody: " + compartmentKey + " (aktywny: " + isActive + ")");
+            Log.d("API_PUT_JSON", gson.toJson(requestBody));
+
+            RetrofitClient.getApiService(this).updateConfig(deviceId, requestBody).enqueue(new Callback<DeviceDetailsResponse>() {
+                @Override
+                public void onResponse(Call<DeviceDetailsResponse> call, Response<DeviceDetailsResponse> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        Toast.makeText(CompartmentScheduleActivity.this, "Zapisano zmianę", Toast.LENGTH_SHORT).show();
+                        String newJson = gson.toJson(response.body());
+                        loadAndDisplayCompartments(newJson);
+
+                        // Przekaż zaktualizowany JSON z powrotem do DeviceScheduleActivity
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra(EXTRA_UPDATED_JSON, newJson);
+                        setResult(RESULT_OK, resultIntent);
+
+                    } else {
+                        Toast.makeText(CompartmentScheduleActivity.this, "Błąd zapisu: " + response.code(), Toast.LENGTH_SHORT).show();
+                        loadAndDisplayCompartments(deviceJson);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<DeviceDetailsResponse> call, Throwable t) {
+                    Toast.makeText(CompartmentScheduleActivity.this, "Błąd sieci: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    loadAndDisplayCompartments(deviceJson);
+                }
+            });
+
+        } catch (Exception e) {
+            Log.e("API_PUT_ERR", "Błąd przy zmianie statusu przegrody", e);
         }
     }
 }

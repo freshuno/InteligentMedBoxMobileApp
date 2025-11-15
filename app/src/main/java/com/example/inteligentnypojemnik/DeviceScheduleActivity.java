@@ -2,9 +2,11 @@ package com.example.inteligentnypojemnik;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 import com.google.android.material.button.MaterialButton;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,13 +15,20 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.ArrayList;
 import java.util.List;
 
-public class DeviceScheduleActivity extends AppCompatActivity {
+import com.google.gson.Gson;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class DeviceScheduleActivity extends AppCompatActivity implements WeekdayAdapter.OnDayActiveChangedListener {
 
     private int deviceId = -1;
     private String deviceName = "Pudełko";
+    private WeekdayAdapter adapter;
+    private RecyclerView recyclerView;
+    private DeviceDetailsResponse.Configuration currentConfiguration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +38,7 @@ public class DeviceScheduleActivity extends AppCompatActivity {
 
         ImageButton backButton = findViewById(R.id.buttonBack);
         TextView headerTitle = findViewById(R.id.device_name_header);
-        RecyclerView recyclerView = findViewById(R.id.weekdays_recycler_view);
+        recyclerView = findViewById(R.id.weekdays_recycler_view);
         MaterialButton statsButton = findViewById(R.id.button_view_statistics);
 
         deviceName = getIntent().getStringExtra("DEVICE_NAME");
@@ -55,13 +64,14 @@ public class DeviceScheduleActivity extends AppCompatActivity {
                             return;
                         }
                         DeviceDetailsResponse details = resp.body();
+                        currentConfiguration = details.configuration; // Zapisujemy konfigurację
                         String deviceJson = new com.google.gson.Gson().toJson(details);
 
                         java.util.List<String> weekdays = java.util.Arrays.asList(
                                 "Poniedziałek","Wtorek","Środa","Czwartek","Piątek","Sobota","Niedziela"
                         );
-                        WeekdayAdapter adapter = new WeekdayAdapter(
-                                DeviceScheduleActivity.this, weekdays, deviceName, deviceId, deviceJson
+                        adapter = new WeekdayAdapter(
+                                DeviceScheduleActivity.this, weekdays, deviceName, deviceId, deviceJson, DeviceScheduleActivity.this
                         );
                         recyclerView.setLayoutManager(new LinearLayoutManager(DeviceScheduleActivity.this));
                         recyclerView.setAdapter(adapter);
@@ -77,6 +87,35 @@ public class DeviceScheduleActivity extends AppCompatActivity {
             Insets sb = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(sb.left, sb.top, sb.right, sb.bottom);
             return insets;
+        });
+    }
+
+    @Override
+    public void onDayActiveChanged(String dayKey, boolean isActive, DeviceDetailsResponse.Configuration newConfig) {
+        this.currentConfiguration = newConfig; // Aktualizujemy bieżącą konfigurację
+        UpdateConfigRequest requestBody = new UpdateConfigRequest(newConfig);
+
+        Log.d("API_PUT", "Zapisywanie zmiany dla dnia: " + dayKey + " (aktywny: " + isActive + ")");
+
+        RetrofitClient.getApiService(this).updateConfig(deviceId, requestBody).enqueue(new Callback<DeviceDetailsResponse>() {
+            @Override
+            public void onResponse(Call<DeviceDetailsResponse> call, Response<DeviceDetailsResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    Toast.makeText(DeviceScheduleActivity.this, "Zapisano zmianę", Toast.LENGTH_SHORT).show();
+                    currentConfiguration = response.body().configuration;
+                    adapter.updateConfiguration(currentConfiguration);
+                } else {
+                    Toast.makeText(DeviceScheduleActivity.this, "Błąd zapisu", Toast.LENGTH_SHORT).show();
+                    // Cofnij zmianę (przeładuj adapter ze starą konfiguracją)
+                    adapter.updateConfiguration(currentConfiguration);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<DeviceDetailsResponse> call, Throwable t) {
+                Toast.makeText(DeviceScheduleActivity.this, "Błąd sieci: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                adapter.updateConfiguration(currentConfiguration);
+            }
         });
     }
 }
