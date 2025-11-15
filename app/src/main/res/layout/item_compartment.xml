@@ -40,13 +40,13 @@
                 android:textColor="@android:color/black"
                 android:textSize="18sp" />
 
-            <ImageView
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/compartment_active_switch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:src="@android:drawable/ic_media_next"
-                app:tint="#888888" />
+                android:layout_centerVertical="true"/>
+
         </RelativeLayout>
 
         <LinearLayout

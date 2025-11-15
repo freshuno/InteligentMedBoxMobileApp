@@ -123,15 +123,14 @@ public class CaregiverPanelActivity extends AppCompatActivity {
 
                     for (MyDevice apiDevice : response.body().getDevices()) {
                         deviceList.add(new Device(
-                                apiDevice.getId(), // DODAJEMY ID
+                                apiDevice.getId(),
                                 apiDevice.getLabel(),
                                 apiDevice.getSeniorDisplayName(),
-                                "Brak danych",
-                                "Brak danych",
-                                "Brak danych"
+                                apiDevice.getSeniorUsername(),
+                                "",
+                                ""
                         ));
                     }
-// ...
 
                     deviceAdapter.notifyDataSetChanged();
 

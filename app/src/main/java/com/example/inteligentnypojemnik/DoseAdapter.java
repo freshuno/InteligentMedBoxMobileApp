@@ -36,9 +36,26 @@ public class DoseAdapter extends RecyclerView.Adapter<DoseAdapter.DoseViewHolder
                 medText.append(", ");
             }
             medText.append(med.getName());
+
+            String doseString = formatDoseToString(med.getDose());
+            if (!doseString.isEmpty()) {
+                medText.append(" (").append(doseString).append(")");
+            }
         }
 
         holder.doseText.setText(dose.getTime() + " - " + medText.toString());
+    }
+
+    private String formatDoseToString(int dose) {
+        if (dose <= 0) {
+            return "";
+        } else if (dose == 1) {
+            return "1 kapsułka";
+        } else if (dose >= 2 && dose <= 4) {
+            return dose + " kapsułki";
+        } else {
+            return dose + " kapsułek";
+        }
     }
 
     @Override

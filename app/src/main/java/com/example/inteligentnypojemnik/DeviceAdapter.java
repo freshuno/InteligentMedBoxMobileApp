@@ -35,9 +35,8 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         Device device = deviceList.get(position);
 
         holder.deviceName.setText(device.getName());
-        holder.deviceNextDose.setText("Następna dawka: " + device.getNextDose());
-        holder.deviceMedCount.setText("Leków: " + device.getMedCount());
-        holder.deviceStatus.setText(device.getStatus());
+
+        holder.deviceNextDose.setText("Użytkownik: " + device.getNextDose());
 
         if (showPatientName) {
             holder.patientName.setText(device.getPatientName());
@@ -46,19 +45,15 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
             holder.patientName.setVisibility(View.GONE);
         }
 
-        // --- POCZĄTEK NOWEGO KODU ---
-        // ... wewnątrz onBindViewHolder() w DeviceAdapter.java ...
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, DeviceScheduleActivity.class);
                 intent.putExtra("DEVICE_NAME", device.getName());
-                intent.putExtra("DEVICE_ID", device.getId()); // DODAJEMY ID
+                intent.putExtra("DEVICE_ID", device.getId());
                 context.startActivity(intent);
             }
         });
-// ...
-        // --- KONIEC NOWEGO KODU ---
     }
 
     @Override
@@ -72,8 +67,6 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         TextView patientName;
         ImageView deviceArrow;
         TextView deviceNextDose;
-        TextView deviceMedCount;
-        TextView deviceStatus;
 
         public DeviceViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -82,8 +75,6 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
             patientName = itemView.findViewById(R.id.patient_name_on_card);
             deviceArrow = itemView.findViewById(R.id.device_arrow);
             deviceNextDose = itemView.findViewById(R.id.device_next_dose);
-            deviceMedCount = itemView.findViewById(R.id.device_med_count);
-            deviceStatus = itemView.findViewById(R.id.device_status);
         }
     }
 }

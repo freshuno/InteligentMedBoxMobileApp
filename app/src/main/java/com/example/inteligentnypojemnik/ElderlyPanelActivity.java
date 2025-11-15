@@ -48,7 +48,6 @@ public class ElderlyPanelActivity extends AppCompatActivity {
         setContentView(R.layout.activity_elderly_panel);
 
         sessionManager = new SessionManager(getApplicationContext());
-
         logoutButton = findViewById(R.id.button_logout);
         TextView settingsButton = findViewById(R.id.nav_settings);
         dosesRecyclerView = findViewById(R.id.doses_recycler_view);
@@ -178,6 +177,13 @@ public class ElderlyPanelActivity extends AppCompatActivity {
             for (MedicineDose med : next.getMedicine()) {
                 if (medText.length() > 0) medText.append(", ");
                 medText.append(med.getName());
+
+                // --- POCZĄTEK MODYFIKACJI ---
+                String doseString = formatDoseToString(med.getDose());
+                if (!doseString.isEmpty()) {
+                    medText.append(" (").append(doseString).append(")");
+                }
+                // --- KONIEC MODYFIKACJI ---
             }
 
             nextMedName.setText(medText.toString());
@@ -187,6 +193,17 @@ public class ElderlyPanelActivity extends AppCompatActivity {
                 timeString += " - TERAZ";
             }
             nextMedTime.setText(timeString);
+        }
+    }
+    private String formatDoseToString(int dose) {
+        if (dose <= 0) {
+            return ""; // Nie pokazuj nic, jeśli dawka to 0 lub mniej
+        } else if (dose == 1) {
+            return "1 kapsułka";
+        } else if (dose >= 2 && dose <= 4) {
+            return dose + " kapsułki";
+        } else {
+            return dose + " kapsułek";
         }
     }
 
