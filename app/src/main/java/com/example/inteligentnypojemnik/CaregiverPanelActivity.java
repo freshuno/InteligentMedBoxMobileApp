@@ -17,7 +17,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,7 +31,7 @@ public class CaregiverPanelActivity extends AppCompatActivity {
     private PatientAdapter patientAdapter;
     private DeviceAdapter deviceAdapter;
     private List<Patient> patientList;
-    private List<Device> deviceList;
+    private List<Device> deviceList; // Lista do widoku "Wszystkie urządzenia"
     private MaterialButtonToggleGroup toggleGroup;
     private MaterialButton addDeviceButton;
     private ImageButton logoutButton;
@@ -48,47 +50,38 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         addDeviceButton = findViewById(R.id.add_device_button);
         logoutButton = findViewById(R.id.button_logout);
 
-        preparePatientList();
-
+        // Inicjalizacja pustych list
+        patientList = new ArrayList<>();
         deviceList = new ArrayList<>();
 
         patientAdapter = new PatientAdapter(this, patientList);
         deviceAdapter = new DeviceAdapter(this, deviceList, true);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
+        // Domyślnie ładujemy widok pacjentów
         recyclerView.setAdapter(patientAdapter);
         addDeviceButton.setVisibility(View.GONE);
 
-        toggleGroup.addOnButtonCheckedListener(new MaterialButtonToggleGroup.OnButtonCheckedListener() {
-            @Override
-            public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked) {
-                if (isChecked) {
-                    if (checkedId == R.id.toggle_patients) {
-                        showPatientView();
-                    } else if (checkedId == R.id.toggle_devices) {
-                        showDeviceView();
-                    }
+        toggleGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) {
+                if (checkedId == R.id.toggle_patients) {
+                    showPatientView();
+                } else if (checkedId == R.id.toggle_devices) {
+                    showDeviceView();
                 }
             }
         });
 
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sessionManager.clearSession();
-                Intent intent = new Intent(CaregiverPanelActivity.this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-            }
+        logoutButton.setOnClickListener(v -> {
+            sessionManager.clearSession();
+            Intent intent = new Intent(CaregiverPanelActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
         });
 
-        addDeviceButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(CaregiverPanelActivity.this, AddDeviceActivity.class);
-                startActivity(intent);
-            }
+        addDeviceButton.setOnClickListener(v -> {
+            Intent intent = new Intent(CaregiverPanelActivity.this, AddDeviceActivity.class);
+            startActivity(intent);
         });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -96,21 +89,16 @@ public class CaregiverPanelActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Pobieramy dane od razu przy starcie, żeby wypełnić obie listy
+        fetchMyDevices();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (toggleGroup.getCheckedButtonId() == R.id.toggle_devices) {
-            fetchMyDevices();
-        }
-    }
-
-    private void preparePatientList() {
-        patientList = new ArrayList<>();
-        patientList.add(new Patient("AK", "Anna Kowalska", "2 urządzenia"));
-        patientList.add(new Patient("JN", "Jan Nowak", "1 urządzenie"));
-        patientList.add(new Patient("MW", "Maria Wiśniewska", "3 urządzenia"));
+        // Odświeżamy dane przy powrocie
+        fetchMyDevices();
     }
 
     private void fetchMyDevices() {
@@ -119,20 +107,56 @@ public class CaregiverPanelActivity extends AppCompatActivity {
             public void onResponse(Call<MyDevicesResponse> call, Response<MyDevicesResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
 
-                    deviceList.clear();
+                    List<MyDevice> rawDevices = response.body().getDevices();
 
-                    for (MyDevice apiDevice : response.body().getDevices()) {
+                    // 1. Aktualizacja listy WSZYSTKICH urządzeń (Widok urządzeń)
+                    deviceList.clear();
+                    for (MyDevice apiDevice : rawDevices) {
                         deviceList.add(new Device(
                                 apiDevice.getId(),
                                 apiDevice.getLabel(),
                                 apiDevice.getSeniorDisplayName(),
-                                apiDevice.getSeniorUsername(),
-                                "",
-                                ""
+                                apiDevice.getSeniorUsername(), // Tutaj wstawiamy username jako info
+                                "", // MedCount
+                                ""  // Status
                         ));
                     }
 
-                    deviceAdapter.notifyDataSetChanged();
+                    // 2. Grupowanie urządzeń po użytkowniku (Widok podopiecznych)
+                    Map<String, List<MyDevice>> groupedDevices = new HashMap<>();
+                    Map<String, String> userDisplayNames = new HashMap<>();
+
+                    for (MyDevice d : rawDevices) {
+                        String username = d.getSeniorUsername();
+                        if (!groupedDevices.containsKey(username)) {
+                            groupedDevices.put(username, new ArrayList<>());
+                            // Zapamiętujemy "ładną nazwę" dla tego username
+                            userDisplayNames.put(username, d.getSeniorDisplayName());
+                        }
+                        groupedDevices.get(username).add(d);
+                    }
+
+                    // 3. Tworzenie obiektów Patient na podstawie grupy
+                    patientList.clear();
+                    for (Map.Entry<String, List<MyDevice>> entry : groupedDevices.entrySet()) {
+                        String username = entry.getKey();
+                        List<MyDevice> userDevices = entry.getValue();
+                        String displayName = userDisplayNames.get(username);
+                        if (displayName == null || displayName.isEmpty()) displayName = username;
+
+                        String initials = getInitials(displayName);
+                        String countText = userDevices.size() == 1 ? "1 urządzenie" : userDevices.size() + " urządzenia";
+
+                        // Dodajemy pacjenta z jego prywatną listą urządzeń
+                        patientList.add(new Patient(initials, displayName, countText, userDevices));
+                    }
+
+                    // Odświeżamy widok w zależności od tego, co jest wybrane
+                    if (toggleGroup.getCheckedButtonId() == R.id.toggle_patients) {
+                        patientAdapter.notifyDataSetChanged();
+                    } else {
+                        deviceAdapter.notifyDataSetChanged();
+                    }
 
                 } else {
                     Toast.makeText(CaregiverPanelActivity.this, "Nie udało się pobrać urządzeń", Toast.LENGTH_SHORT).show();
@@ -141,10 +165,21 @@ public class CaregiverPanelActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<MyDevicesResponse> call, Throwable t) {
-                Log.e("API_FAILURE", "Błąd pobierania urządzeń: " + t.getMessage());
-                Toast.makeText(CaregiverPanelActivity.this, "Błąd połączenia: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("API_FAILURE", "Błąd: " + t.getMessage());
             }
         });
+    }
+
+    // Pomocnicza metoda do inicjałów
+    private String getInitials(String name) {
+        if (name == null || name.isEmpty()) return "??";
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length >= 2) {
+            return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+        } else if (name.length() >= 2) {
+            return name.substring(0, 2).toUpperCase();
+        }
+        return name.substring(0, 1).toUpperCase();
     }
 
     private void showPatientView() {
@@ -155,6 +190,5 @@ public class CaregiverPanelActivity extends AppCompatActivity {
     private void showDeviceView() {
         recyclerView.setAdapter(deviceAdapter);
         addDeviceButton.setVisibility(View.VISIBLE);
-        fetchMyDevices();
     }
 }

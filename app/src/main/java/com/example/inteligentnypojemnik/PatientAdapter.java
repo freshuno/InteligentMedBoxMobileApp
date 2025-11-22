@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
+import com.google.gson.Gson; // Potrzebny Gson
 
 public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientViewHolder> {
 
@@ -36,11 +37,19 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
         holder.name.setText(patient.getName());
         holder.deviceCount.setText(patient.getDeviceCount());
 
-
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // [ZMIANA] Przekazujemy listę urządzeń tego pacjenta
                 Intent intent = new Intent(context, PatientDevicesActivity.class);
+
+                // Serializujemy listę urządzeń do JSON
+                Gson gson = new Gson();
+                String devicesJson = gson.toJson(patient.getUserDevices());
+
+                intent.putExtra("DEVICES_JSON", devicesJson);
+                intent.putExtra("PATIENT_NAME", patient.getName());
+
                 context.startActivity(intent);
             }
         });
