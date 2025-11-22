@@ -1,7 +1,16 @@
 package com.example.inteligentnypojemnik;
 
+import android.app.AlarmManager;
+import android.app.AlertDialog; // Dodano import do dialogu
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.DialogInterface; // Dodano import
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri; // Dodano import do Uri
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings; // Dodano import do Settings
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -10,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -46,6 +56,16 @@ public class ElderlyPanelActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_elderly_panel);
+
+        // 1. Prośba o zwykłe powiadomienia (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
+
+        // 2. Sprawdzenie i prośba o dokładne alarmy (Android 12+) - ULEPSZONA WERSJA
+        checkAndRequestExactAlarmPermission();
 
         sessionManager = new SessionManager(getApplicationContext());
         logoutButton = findViewById(R.id.button_logout);
@@ -89,6 +109,31 @@ public class ElderlyPanelActivity extends AppCompatActivity {
         fetchMyDoses();
     }
 
+    // --- NOWA METODA: Eleganckie proszenie o uprawnienia ---
+    private void checkAndRequestExactAlarmPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
+                // Wyświetlamy dialog wyjaśniający
+                new AlertDialog.Builder(this)
+                        .setTitle("Wymagane uprawnienie")
+                        .setMessage("Aby aplikacja mogła przypominać o lekach dokładnie o czasie, musisz zezwolić na ustawianie alarmów w kolejnym oknie.")
+                        .setPositiveButton("Ustawienia", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Przenosimy BEZPOŚREDNIO do ustawień TEJ aplikacji
+                                Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                                intent.setData(Uri.parse("package:" + getPackageName()));
+                                startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("Później", null)
+                        .show();
+            }
+        }
+    }
+    // -------------------------------------------------------
+
     private void setupRecyclerView() {
         doseList = new ArrayList<>();
         doseAdapter = new DoseAdapter(this, doseList);
@@ -123,6 +168,8 @@ public class ElderlyPanelActivity extends AppCompatActivity {
                     doseList.addAll(doses);
                     doseAdapter.notifyDataSetChanged();
 
+                    scheduleReminders(doses);
+
                     TodayDose nextDose = findNextDose(doses);
                     updateNextDoseCard(nextDose);
 
@@ -137,6 +184,65 @@ public class ElderlyPanelActivity extends AppCompatActivity {
                 Toast.makeText(ElderlyPanelActivity.this, "Błąd połączenia", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void scheduleReminders(List<TodayDose> doses) {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        // Sprawdzamy uprawnienie ponownie przed ustawieniem
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
+                Log.w("ALARM", "Brak uprawnień do dokładnych alarmów - pomijam ustawianie.");
+                return;
+            }
+        }
+
+        for (TodayDose dose : doses) {
+            try {
+                Date doseDate = timeFormat.parse(dose.getTime());
+                Calendar doseCalendar = Calendar.getInstance();
+                doseCalendar.setTime(doseDate);
+
+                Calendar reminderTime = Calendar.getInstance();
+                reminderTime.set(Calendar.HOUR_OF_DAY, doseCalendar.get(Calendar.HOUR_OF_DAY));
+                reminderTime.set(Calendar.MINUTE, doseCalendar.get(Calendar.MINUTE));
+                reminderTime.set(Calendar.SECOND, 0);
+
+                reminderTime.add(Calendar.MINUTE, -15);
+
+                if (reminderTime.after(Calendar.getInstance())) {
+                    StringBuilder medNames = new StringBuilder();
+                    for (MedicineDose med : dose.getMedicine()) {
+                        if(medNames.length() > 0) medNames.append(", ");
+                        medNames.append(med.getName());
+                    }
+
+                    Intent intent = new Intent(this, NotificationReceiver.class);
+                    intent.putExtra("MED_INFO", medNames.toString());
+
+                    int uniqueId = dose.getTime().hashCode();
+
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                            this,
+                            uniqueId,
+                            intent,
+                            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                    );
+
+                    if (alarmManager != null) {
+                        alarmManager.setExactAndAllowWhileIdle(
+                                AlarmManager.RTC_WAKEUP,
+                                reminderTime.getTimeInMillis(),
+                                pendingIntent
+                        );
+                        Log.d("ALARM", "Ustawiono przypomnienie na: " + reminderTime.getTime());
+                    }
+                }
+
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private TodayDose findNextDose(List<TodayDose> sortedDoses) {
@@ -178,12 +284,10 @@ public class ElderlyPanelActivity extends AppCompatActivity {
                 if (medText.length() > 0) medText.append(", ");
                 medText.append(med.getName());
 
-                // --- POCZĄTEK MODYFIKACJI ---
                 String doseString = formatDoseToString(med.getDose());
                 if (!doseString.isEmpty()) {
                     medText.append(" (").append(doseString).append(")");
                 }
-                // --- KONIEC MODYFIKACJI ---
             }
 
             nextMedName.setText(medText.toString());
@@ -195,9 +299,10 @@ public class ElderlyPanelActivity extends AppCompatActivity {
             nextMedTime.setText(timeString);
         }
     }
+
     private String formatDoseToString(int dose) {
         if (dose <= 0) {
-            return ""; // Nie pokazuj nic, jeśli dawka to 0 lub mniej
+            return "";
         } else if (dose == 1) {
             return "1 kapsułka";
         } else if (dose >= 2 && dose <= 4) {
