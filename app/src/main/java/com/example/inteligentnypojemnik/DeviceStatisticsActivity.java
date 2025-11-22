@@ -210,6 +210,11 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
     private String formatTimestampToTime(String inputTimestamp) {
         Date date = parseTimestamp(inputTimestamp);
         if (date != null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            calendar.add(Calendar.HOUR_OF_DAY, 1);
+            date = calendar.getTime();
+
             SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
             outputFormat.setTimeZone(TimeZone.getDefault());
             return outputFormat.format(date);
@@ -220,6 +225,11 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
     private String formatTimestampToDateString(String inputTimestamp) {
         Date date = parseTimestamp(inputTimestamp);
         if (date != null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            calendar.add(Calendar.HOUR_OF_DAY, 1);
+            date = calendar.getTime();
+
             SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             outputFormat.setTimeZone(TimeZone.getDefault());
             return outputFormat.format(date);

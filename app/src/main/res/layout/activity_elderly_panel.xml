@@ -87,18 +87,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="16dp"
                     android:text="Godzina: ..."
                     android:textColor="@android:color/black"
                     android:textSize="16sp" />
 
-                <Button
-                    android:id="@+id/buttonTakeMed"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="#4CAF50"
-                    android:text="WZIĄŁEM/WZIĘŁAM LEK"
-                    android:textColor="@android:color/white" />
             </LinearLayout>
 
             <LinearLayout
@@ -139,12 +131,6 @@
         android:orientation="horizontal"
         android:paddingTop="8dp"
         android:paddingBottom="8dp">
-
-        <TextView
-            android:id="@+id/nav_history"
-            style="@style/BottomNavItem"
-            android:drawableTop="@android:drawable/ic_menu_recent_history"
-            android:text="Historia" />
 
         <TextView
             android:id="@+id/nav_settings"

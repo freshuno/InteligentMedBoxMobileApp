@@ -22,7 +22,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="64dp"
-            android:text="App name"
+            android:text="Inteligent MedBox"
             android:textColor="@android:color/black"
             android:textSize="28sp"
             android:textStyle="bold" />
@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:gravity="center"
-            android:text="Create an account"
+            android:text="Utwórz konto"
             android:textColor="@android:color/black"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:gravity="center"
-            android:text="Enter your email to sign up for this app"
+            android:text="Wpisz swój e-mail, aby się zarejestrować"
             android:textColor="@android:color/darker_gray"
             android:textSize="16sp" />
 
@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:background="@drawable/edit_text_background"
-            android:hint="email@domain.com"
+            android:hint="email@domena.com"
             android:inputType="textEmailAddress"
             android:padding="16dp" />
 
@@ -63,55 +63,12 @@
             android:layout_marginBottom="24dp"
             android:paddingTop="16dp"
             android:paddingBottom="16dp"
-            android:text="Continue"
+            android:text="Dalej"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
             app:backgroundTint="#000000"
             app:cornerRadius="8dp" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="#E0E0E0" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:text="or"
-                android:textColor="@android:color/darker_gray" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1"
-                android:background="#E0E0E0" />
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonContinueGoogle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp"
-            android:text="Continue with Google"
-            android:textAllCaps="false"
-            android:textColor="@android:color/black"
-            app:backgroundTint="#F5F5F5"
-            app:cornerRadius="8dp"
-            app:icon="@drawable/ic_google_logo"
-            app:iconPadding="12dp"
-            app:iconSize="24dp"
-            app:iconTint="@null" />
     </LinearLayout>
 
     <TextView
@@ -120,7 +77,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:paddingBottom="32dp"
-        android:text="Already have an account? Sign in"
+        android:text="Masz już konto? Zaloguj się"
         android:textColor="#007AFF"
         android:textSize="16sp" />
 
