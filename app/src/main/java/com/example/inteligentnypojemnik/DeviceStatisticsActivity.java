@@ -212,7 +212,6 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
         if (date != null) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
-            calendar.add(Calendar.HOUR_OF_DAY, 1);
             date = calendar.getTime();
 
             SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
@@ -227,7 +226,6 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
         if (date != null) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
-            calendar.add(Calendar.HOUR_OF_DAY, 1);
             date = calendar.getTime();
 
             SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
