@@ -20,10 +20,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import android.os.Build;
+import android.content.pm.PackageManager;
+import androidx.core.app.ActivityCompat;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.ExistingWorkPolicy;
+// import androidx.work.PeriodicWorkRequest; // Do produkcji odkomentuj
+// import androidx.work.ExistingPeriodicWorkPolicy; // Do produkcji odkomentuj
+// import java.util.concurrent.TimeUnit; // Do produkcji odkomentuj
 
 public class CaregiverPanelActivity extends AppCompatActivity {
 
@@ -31,7 +41,7 @@ public class CaregiverPanelActivity extends AppCompatActivity {
     private PatientAdapter patientAdapter;
     private DeviceAdapter deviceAdapter;
     private List<Patient> patientList;
-    private List<Device> deviceList; // Lista do widoku "Wszystkie urządzenia"
+    private List<Device> deviceList;
     private MaterialButtonToggleGroup toggleGroup;
     private MaterialButton addDeviceButton;
     private ImageButton logoutButton;
@@ -50,15 +60,43 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         addDeviceButton = findViewById(R.id.add_device_button);
         logoutButton = findViewById(R.id.button_logout);
 
-        // Inicjalizacja pustych list
         patientList = new ArrayList<>();
         deviceList = new ArrayList<>();
+
+        // 1. Sprawdzenie uprawnień do powiadomień (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
+            }
+        }
+
+        // 2. Uruchomienie Workera (TRYB TESTOWY - NATYCHMIASTOWY START)
+        // To uruchomi "pętlę", która potem sama się odnawia co minutę w MissedDoseWorker.java
+        OneTimeWorkRequest startCheck = new OneTimeWorkRequest.Builder(MissedDoseWorker.class).build();
+
+        WorkManager.getInstance(this).enqueueUniqueWork(
+                "TestMonitorLekow",
+                ExistingWorkPolicy.REPLACE, // REPLACE restartuje proces przy każdym wejściu w ten ekran
+                startCheck
+        );
+
+        // --- TRYB PRODUKCYJNY (zakomentowany na czas testów) ---
+        /*
+        PeriodicWorkRequest checkDosesRequest =
+                new PeriodicWorkRequest.Builder(MissedDoseWorker.class, 15, TimeUnit.MINUTES)
+                        .build();
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "MonitorLekow",
+                ExistingPeriodicWorkPolicy.KEEP,
+                checkDosesRequest
+        );
+        */
 
         patientAdapter = new PatientAdapter(this, patientList);
         deviceAdapter = new DeviceAdapter(this, deviceList, true);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        // Domyślnie ładujemy widok pacjentów
         recyclerView.setAdapter(patientAdapter);
         addDeviceButton.setVisibility(View.GONE);
 
@@ -90,14 +128,12 @@ public class CaregiverPanelActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Pobieramy dane od razu przy starcie, żeby wypełnić obie listy
         fetchMyDevices();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Odświeżamy dane przy powrocie
         fetchMyDevices();
     }
 
@@ -106,23 +142,20 @@ public class CaregiverPanelActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<MyDevicesResponse> call, Response<MyDevicesResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-
                     List<MyDevice> rawDevices = response.body().getDevices();
 
-                    // 1. Aktualizacja listy WSZYSTKICH urządzeń (Widok urządzeń)
                     deviceList.clear();
                     for (MyDevice apiDevice : rawDevices) {
                         deviceList.add(new Device(
                                 apiDevice.getId(),
                                 apiDevice.getLabel(),
                                 apiDevice.getSeniorDisplayName(),
-                                apiDevice.getSeniorUsername(), // Tutaj wstawiamy username jako info
-                                "", // MedCount
-                                ""  // Status
+                                apiDevice.getSeniorUsername(),
+                                "",
+                                ""
                         ));
                     }
 
-                    // 2. Grupowanie urządzeń po użytkowniku (Widok podopiecznych)
                     Map<String, List<MyDevice>> groupedDevices = new HashMap<>();
                     Map<String, String> userDisplayNames = new HashMap<>();
 
@@ -130,13 +163,11 @@ public class CaregiverPanelActivity extends AppCompatActivity {
                         String username = d.getSeniorUsername();
                         if (!groupedDevices.containsKey(username)) {
                             groupedDevices.put(username, new ArrayList<>());
-                            // Zapamiętujemy "ładną nazwę" dla tego username
                             userDisplayNames.put(username, d.getSeniorDisplayName());
                         }
                         groupedDevices.get(username).add(d);
                     }
 
-                    // 3. Tworzenie obiektów Patient na podstawie grupy
                     patientList.clear();
                     for (Map.Entry<String, List<MyDevice>> entry : groupedDevices.entrySet()) {
                         String username = entry.getKey();
@@ -147,11 +178,9 @@ public class CaregiverPanelActivity extends AppCompatActivity {
                         String initials = getInitials(displayName);
                         String countText = userDevices.size() == 1 ? "1 urządzenie" : userDevices.size() + " urządzenia";
 
-                        // Dodajemy pacjenta z jego prywatną listą urządzeń
                         patientList.add(new Patient(initials, displayName, countText, userDevices));
                     }
 
-                    // Odświeżamy widok w zależności od tego, co jest wybrane
                     if (toggleGroup.getCheckedButtonId() == R.id.toggle_patients) {
                         patientAdapter.notifyDataSetChanged();
                     } else {
@@ -170,7 +199,6 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         });
     }
 
-    // Pomocnicza metoda do inicjałów
     private String getInitials(String name) {
         if (name == null || name.isEmpty()) return "??";
         String[] parts = name.trim().split("\\s+");
