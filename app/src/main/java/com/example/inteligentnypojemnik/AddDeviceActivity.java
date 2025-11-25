@@ -6,6 +6,9 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher; // Import
+import com.journeyapps.barcodescanner.ScanContract; // Import
+import com.journeyapps.barcodescanner.ScanOptions; // Import
 import com.google.android.material.button.MaterialButton;
 
 import androidx.activity.EdgeToEdge;
@@ -22,6 +25,17 @@ public class AddDeviceActivity extends AppCompatActivity {
 
     private EditText inputPatientName, inputSerial, inputLabel;
     private MaterialButton generateButton;
+    private ImageButton scanQrButton; // Nowe pole
+
+    // Rejestracja launchera do obsługi wyniku skanowania
+    private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
+            result -> {
+                if(result.getContents() != null) {
+                    // Gdy zeskanowano pomyślnie, wpisz kod do pola inputSerial
+                    inputSerial.setText(result.getContents());
+                    Toast.makeText(AddDeviceActivity.this, "Zeskanowano: " + result.getContents(), Toast.LENGTH_SHORT).show();
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,10 +49,26 @@ public class AddDeviceActivity extends AppCompatActivity {
         inputSerial = findViewById(R.id.input_serial_number);
         inputLabel = findViewById(R.id.input_label);
 
+        // Inicjalizacja przycisku skanowania
+        scanQrButton = findViewById(R.id.button_scan_qr);
+
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+
+        // Obsługa kliknięcia w ikonę aparatu
+        scanQrButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ScanOptions options = new ScanOptions();
+                options.setPrompt("Zeskanuj kod QR z urządzenia");
+                options.setBeepEnabled(true);
+                options.setOrientationLocked(true); // Blokada orientacji (pionowa)
+                options.setBarcodeImageEnabled(false);
+                barcodeLauncher.launch(options);
             }
         });
 
@@ -57,6 +87,7 @@ public class AddDeviceActivity extends AppCompatActivity {
     }
 
     private void pairNewDevice() {
+        // ... (Reszta Twojego kodu bez zmian) ...
         String seniorUsername = inputPatientName.getText().toString();
         String physicalDeviceId = inputSerial.getText().toString();
         String label = inputLabel.getText().toString();
