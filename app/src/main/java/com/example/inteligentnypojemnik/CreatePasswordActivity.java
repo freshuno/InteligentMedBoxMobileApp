@@ -31,6 +31,8 @@ public class CreatePasswordActivity extends AppCompatActivity {
 
         userEmail = getIntent().getStringExtra("USER_EMAIL");
 
+        // Pobieranie referencji do pól
+        EditText displayNameField = findViewById(R.id.editTextDisplayName);
         EditText passwordField = findViewById(R.id.editTextPassword);
         EditText repeatPasswordField = findViewById(R.id.editTextRepeatPassword);
         MaterialButton createAccountButton = findViewById(R.id.buttonCreateAccount);
@@ -38,19 +40,50 @@ public class CreatePasswordActivity extends AppCompatActivity {
         createAccountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String displayName = displayNameField.getText().toString().trim();
                 String password = passwordField.getText().toString();
                 String repeatPassword = repeatPasswordField.getText().toString();
 
+                // --- WALIDACJA ---
+
+                // 1. Walidacja Nazwy
+                if (displayName.isEmpty()) {
+                    displayNameField.setError("Nazwa jest wymagana");
+                    return;
+                }
+                if (displayName.length() < 3) {
+                    displayNameField.setError("Nazwa musi mieć min. 3 znaki");
+                    return;
+                }
+                // Dozwolone tylko litery, cyfry i spacje (w tym polskie znaki)
+                if (!displayName.matches("[a-zA-Z0-9ąęćłńóśźżĄĘĆŁŃÓŚŹŻ ]+")) {
+                    displayNameField.setError("Nazwa zawiera niedozwolone znaki");
+                    return;
+                }
+
+                // 2. Walidacja Emaila (na wypadek błędu przy przekazywaniu)
                 if (userEmail == null || userEmail.isEmpty() || !userEmail.contains("@")) {
                     Toast.makeText(CreatePasswordActivity.this, "Błąd: Niepoprawny email!", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if (password.isEmpty() || !password.equals(repeatPassword)) {
+
+                // 3. Walidacja haseł
+                if (password.isEmpty()) {
+                    passwordField.setError("Hasło jest wymagane");
+                    return;
+                }
+                if (password.length() < 6) { // Przykładowa walidacja długości
+                    passwordField.setError("Hasło musi mieć min. 6 znaków");
+                    return;
+                }
+                if (!password.equals(repeatPassword)) {
+                    repeatPasswordField.setError("Hasła się nie zgadzają");
                     Toast.makeText(CreatePasswordActivity.this, "Hasła się nie zgadzają!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                registerUser(userEmail, password);
+                // Jeśli wszystko OK -> rejestracja
+                registerUser(displayName, userEmail, password);
             }
         });
 
@@ -70,11 +103,9 @@ public class CreatePasswordActivity extends AppCompatActivity {
         });
     }
 
-
-    private void registerUser(String email, String password) {
+    private void registerUser(String displayName, String email, String password) {
 
         String username = email.split("@")[0];
-        String displayName = "Test User";
 
         Log.d("API_CALL", "Rejestracja: dn=" + displayName + ", u=" + username + ", e=" + email + ", p=" + password);
 
@@ -86,20 +117,16 @@ public class CreatePasswordActivity extends AppCompatActivity {
             public void onResponse(Call<RegisterResponse> call, Response<RegisterResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
 
-
                     Toast.makeText(CreatePasswordActivity.this, "Rejestracja udana! Zaloguj się.", Toast.LENGTH_LONG).show();
 
                     Intent intent = new Intent(CreatePasswordActivity.this, SignInActivity.class);
-
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-
                     startActivity(intent);
 
-
                 } else {
-                    String errorMsg = "Błąd rejestracji: " + response.code() + " " + response.message();
+                    String errorMsg = "Błąd rejestracji: " + response.code();
                     Log.e("API_ERROR", errorMsg);
-                    Toast.makeText(CreatePasswordActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                    Toast.makeText(CreatePasswordActivity.this, "Błąd: " + errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
 
