@@ -57,14 +57,12 @@ public class ElderlyPanelActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_elderly_panel);
 
-        // 1. Prośba o zwykłe powiadomienia (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
             }
         }
 
-        // 2. Sprawdzenie i prośba o dokładne alarmy (Android 12+) - ULEPSZONA WERSJA
         checkAndRequestExactAlarmPermission();
 
         sessionManager = new SessionManager(getApplicationContext());
@@ -93,12 +91,20 @@ public class ElderlyPanelActivity extends AppCompatActivity {
         logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sessionManager.clearSession();
-                Intent intent = new Intent(ElderlyPanelActivity.this, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
+                new AlertDialog.Builder(ElderlyPanelActivity.this)
+                        .setTitle("Wylogowanie")
+                        .setMessage("Czy na pewno chcesz się wylogować?")
+                        .setPositiveButton("Tak", (dialog, which) -> {
+                            sessionManager.clearSession();
+                            Intent intent = new Intent(ElderlyPanelActivity.this, MainActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                        })
+                        .setNegativeButton("Nie", null)
+                        .show();
             }
         });
+        // ----------------------------------------------
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -109,19 +115,16 @@ public class ElderlyPanelActivity extends AppCompatActivity {
         fetchMyDoses();
     }
 
-    // --- NOWA METODA: Eleganckie proszenie o uprawnienia ---
     private void checkAndRequestExactAlarmPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
-                // Wyświetlamy dialog wyjaśniający
                 new AlertDialog.Builder(this)
                         .setTitle("Wymagane uprawnienie")
                         .setMessage("Aby aplikacja mogła przypominać o lekach dokładnie o czasie, musisz zezwolić na ustawianie alarmów w kolejnym oknie.")
                         .setPositiveButton("Ustawienia", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                // Przenosimy BEZPOŚREDNIO do ustawień TEJ aplikacji
                                 Intent intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
                                 intent.setData(Uri.parse("package:" + getPackageName()));
                                 startActivity(intent);
@@ -189,7 +192,6 @@ public class ElderlyPanelActivity extends AppCompatActivity {
     private void scheduleReminders(List<TodayDose> doses) {
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        // Sprawdzamy uprawnienie ponownie przed ustawieniem
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
                 Log.w("ALARM", "Brak uprawnień do dokładnych alarmów - pomijam ustawianie.");

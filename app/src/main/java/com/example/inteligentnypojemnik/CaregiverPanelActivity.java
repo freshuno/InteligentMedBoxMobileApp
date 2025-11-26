@@ -1,5 +1,6 @@
 package com.example.inteligentnypojemnik;
 
+import android.app.AlertDialog; // Dodano import
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,7 +29,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-// Importy do WorkManager
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.ExistingPeriodicWorkPolicy;
@@ -62,21 +62,20 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         patientList = new ArrayList<>();
         deviceList = new ArrayList<>();
 
-        // 1. Sprawdzenie uprawnień do powiadomień (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
             }
         }
 
-        // 2. Uruchomienie Workera - TRYB PRODUKCYJNY (Cyklicznie co 15 minut)
+
         PeriodicWorkRequest checkDosesRequest =
                 new PeriodicWorkRequest.Builder(MissedDoseWorker.class, 15, TimeUnit.MINUTES)
                         .build();
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "MonitorLekow",
-                ExistingPeriodicWorkPolicy.KEEP, // KEEP: nie restartuj licznika, jeśli zadanie już istnieje
+                ExistingPeriodicWorkPolicy.KEEP,
                 checkDosesRequest
         );
 
@@ -98,11 +97,19 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         });
 
         logoutButton.setOnClickListener(v -> {
-            sessionManager.clearSession();
-            Intent intent = new Intent(CaregiverPanelActivity.this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
+            new AlertDialog.Builder(CaregiverPanelActivity.this)
+                    .setTitle("Wylogowanie")
+                    .setMessage("Czy na pewno chcesz się wylogować?")
+                    .setPositiveButton("Tak", (dialog, which) -> {
+                        sessionManager.clearSession();
+                        Intent intent = new Intent(CaregiverPanelActivity.this, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("Nie", null)
+                    .show();
         });
+        // ----------------------------------------------
 
         addDeviceButton.setOnClickListener(v -> {
             Intent intent = new Intent(CaregiverPanelActivity.this, AddDeviceActivity.class);
