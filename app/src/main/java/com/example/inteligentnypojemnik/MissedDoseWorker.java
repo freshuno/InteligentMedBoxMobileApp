@@ -13,9 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -29,7 +26,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 import retrofit2.Response;
 
@@ -44,7 +40,7 @@ public class MissedDoseWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        Log.d(TAG, "--- WORKER: SPRAWDZANIE STANU ---");
+        Log.d(TAG, "--- WORKER: SPRAWDZANIE STANU (TRYB PRODUKCYJNY 15min) ---");
         Context context = getApplicationContext();
         ApiService apiService = RetrofitClient.getApiService(context);
 
@@ -52,8 +48,7 @@ public class MissedDoseWorker extends Worker {
             Response<MyDevicesResponse> devicesResponse = apiService.getMyDevices().execute();
             if (!devicesResponse.isSuccessful() || devicesResponse.body() == null) {
                 Log.e(TAG, "Błąd API (urządzenia): " + devicesResponse.code());
-                scheduleNextCheck();
-                return Result.success();
+                return Result.retry(); // Spróbuj ponownie później w razie błędu sieci
             }
 
             List<MyDevice> devices = devicesResponse.body().getDevices();
@@ -62,28 +57,12 @@ public class MissedDoseWorker extends Worker {
                 checkDeviceForMissedDoses(apiService, device, context);
             }
 
-            // Zaplanuj kolejne sprawdzenie za 1 minutę (PĘTLA DO TESTÓW)
-            scheduleNextCheck();
-
             return Result.success();
 
         } catch (Exception e) {
             Log.e(TAG, "Wyjątek w workerze", e);
-            scheduleNextCheck();
             return Result.failure();
         }
-    }
-
-    private void scheduleNextCheck() {
-        OneTimeWorkRequest nextRequest = new OneTimeWorkRequest.Builder(MissedDoseWorker.class)
-                .setInitialDelay(1, TimeUnit.MINUTES)
-                .build();
-
-        WorkManager.getInstance(getApplicationContext()).enqueueUniqueWork(
-                "TestMonitorLekow",
-                ExistingWorkPolicy.REPLACE,
-                nextRequest
-        );
     }
 
     private void checkDeviceForMissedDoses(ApiService api, MyDevice device, Context context) throws IOException {
@@ -100,26 +79,24 @@ public class MissedDoseWorker extends Worker {
         String todayKey = getTodayKey();
         DeviceDetailsResponse.DayConfig dayConfig = config.get(todayKey);
 
-        // Jeśli brak konfiguracji na dzisiaj lub dzień jest pusty - ignorujemy
         if (dayConfig == null || dayConfig.containers == null) {
-            Log.d(TAG, "Brak konfiguracji na dzień: " + todayKey + " dla urządzenia " + device.getSeniorDisplayName());
             return;
         }
 
         long currentTimeMillis = System.currentTimeMillis();
 
-        // === KONFIGURACJA CZASU (TESTY) ===
-        // Czas po którym uznajemy dawkę za pominiętą (np. 2 minuty po czasie leku)
-        long thresholdMillis = 2 * 60 * 1000;
+        // === KONFIGURACJA CZASU (PRODUKCJA) ===
+        // 1. Start sprawdzania: 15 minut po czasie leku
+        long thresholdMillis = 15 * 60 * 1000;
 
-        // Maksymalny czas wstecz (żeby nie alarmować o lekach z rana)
-        long maxLookBackMillis = 60 * 60 * 1000;
+        // 2. Koniec sprawdzania: 30 minut po czasie leku
+        // (Dzięki temu, gdy worker uruchomi się w kolejnym cyklu np. po 30 min,
+        //  uzna ten lek za "stary" i nie wyśle powiadomienia drugi raz)
+        long maxLookBackMillis = 30 * 60 * 1000;
 
         for (DeviceDetailsResponse.ContainerConfig container : dayConfig.containers.values()) {
 
-            // WAŻNE: Sprawdzamy, czy lek/przegroda jest w ogóle aktywna
             if (!container.active) {
-                // Log.d(TAG, "Pominięto nieaktywną przegrodę: " + container.reminder_time);
                 continue;
             }
 
@@ -130,14 +107,14 @@ public class MissedDoseWorker extends Worker {
 
                 long doseTimeMillis = doseCalendar.getTimeInMillis();
 
-                // 1. Czy jesteśmy w oknie "PO CZASIE"? (Aktualny czas > czas leku + 2 minuty)
+                // Logika okna czasowego:
+                // "Czy minęło już 15 minut?"  ORAZ  "Czy nie minęło jeszcze 30 minut?"
                 boolean isAfterThreshold = currentTimeMillis > (doseTimeMillis + thresholdMillis);
-                // 2. Czy nie jest za późno na powiadomienie?
-                boolean isNotTooLate = currentTimeMillis < (doseTimeMillis + maxLookBackMillis);
+                boolean isWithinWindow = currentTimeMillis < (doseTimeMillis + maxLookBackMillis);
 
-                if (isAfterThreshold && isNotTooLate) {
+                if (isAfterThreshold && isWithinWindow) {
 
-                    Log.d(TAG, "Sprawdzam lek: " + container.reminder_time + " dla " + device.getSeniorDisplayName());
+                    Log.d(TAG, "Sprawdzam lek w oknie alarmowym: " + container.reminder_time);
 
                     boolean medicineTaken = false;
 
@@ -146,11 +123,9 @@ public class MissedDoseWorker extends Worker {
                             Date eventDate = parseTimestamp(event.getTimestamp());
                             if (eventDate != null) {
                                 long eventTime = eventDate.getTime();
-
-                                // Aktywność musi być PO lub RÓWNO z czasem zaplanowanym.
+                                // Sprawdzamy czy aktywność była PO zaplanowanym czasie leku
                                 if (eventTime >= doseTimeMillis) {
                                     medicineTaken = true;
-                                    Log.d(TAG, "-> ZNALEZIONO AKTYWNOŚĆ! (Lek wzięty o: " + event.getTimestamp() + ")");
                                     break;
                                 }
                             }
@@ -168,36 +143,29 @@ public class MissedDoseWorker extends Worker {
         }
     }
 
-    // --- ULEPSZONE PARSOWANIE DATY (Obsługa wielu formatów) ---
     private Date parseTimestamp(String ts) {
         if (ts == null || ts.isEmpty()) return null;
 
-        // 1. Próba parsowania Instant/OffsetDateTime (Dla nowszych Androidów)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try { return Date.from(Instant.parse(ts)); } catch (Exception ignored) {}
             try { return Date.from(OffsetDateTime.parse(ts).toInstant()); } catch (Exception ignored) {}
         }
 
-        // 2. Lista formatów do sprawdzenia (Starsze Androidy + niestandardowe formaty)
         String[] formats = {
-                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", // API z mikrosekundami
-                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",    // Standardowe milisekundy
-                "yyyy-MM-dd'T'HH:mm:ss.SSS",       // <-- TO NAPRAWIA TWÓJ BŁĄD (bez 'Z')
-                "yyyy-MM-dd'T'HH:mm:ss'Z'",        // Bez milisekund
-                "yyyy-MM-dd'T'HH:mm:ss"            // Bez milisekund i bez 'Z'
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss"
         };
 
         for (String format : formats) {
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat(format, Locale.US);
-                sdf.setTimeZone(TimeZone.getTimeZone("UTC")); // Zakładamy, że serwer zwraca UTC
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
                 return sdf.parse(ts);
-            } catch (ParseException ignored) {
-                // Próbujemy kolejny format
-            }
+            } catch (ParseException ignored) {}
         }
-
-        Log.e("TimeFormat", "Żaden format nie pasował do: " + ts);
         return null;
     }
 
@@ -230,6 +198,7 @@ public class MissedDoseWorker extends Worker {
 
     private void sendNotification(Context context, String patientName, String time) {
         String channelId = "caregiver_alerts";
+        // Unikalne ID powiadomienia na bazie czasu, żeby się nie nadpisywały
         int notificationId = time.hashCode();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -254,8 +223,6 @@ public class MissedDoseWorker extends Worker {
         try {
             if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
                 notificationManager.notify(notificationId, builder.build());
-            } else {
-                Log.e(TAG, "Brak uprawnień POST_NOTIFICATIONS!");
             }
         } catch (SecurityException e) {
             Log.e(TAG, "Błąd security przy powiadomieniu", e);

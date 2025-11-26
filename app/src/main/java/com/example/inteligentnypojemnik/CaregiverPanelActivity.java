@@ -28,12 +28,11 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import androidx.work.OneTimeWorkRequest;
+// Importy do WorkManager
+import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
-import androidx.work.ExistingWorkPolicy;
-// import androidx.work.PeriodicWorkRequest; // Do produkcji odkomentuj
-// import androidx.work.ExistingPeriodicWorkPolicy; // Do produkcji odkomentuj
-// import java.util.concurrent.TimeUnit; // Do produkcji odkomentuj
+import androidx.work.ExistingPeriodicWorkPolicy;
+import java.util.concurrent.TimeUnit;
 
 public class CaregiverPanelActivity extends AppCompatActivity {
 
@@ -70,28 +69,16 @@ public class CaregiverPanelActivity extends AppCompatActivity {
             }
         }
 
-        // 2. Uruchomienie Workera (TRYB TESTOWY - NATYCHMIASTOWY START)
-        // To uruchomi "pętlę", która potem sama się odnawia co minutę w MissedDoseWorker.java
-        OneTimeWorkRequest startCheck = new OneTimeWorkRequest.Builder(MissedDoseWorker.class).build();
-
-        WorkManager.getInstance(this).enqueueUniqueWork(
-                "TestMonitorLekow",
-                ExistingWorkPolicy.REPLACE, // REPLACE restartuje proces przy każdym wejściu w ten ekran
-                startCheck
-        );
-
-        // --- TRYB PRODUKCYJNY (zakomentowany na czas testów) ---
-        /*
+        // 2. Uruchomienie Workera - TRYB PRODUKCYJNY (Cyklicznie co 15 minut)
         PeriodicWorkRequest checkDosesRequest =
                 new PeriodicWorkRequest.Builder(MissedDoseWorker.class, 15, TimeUnit.MINUTES)
                         .build();
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
                 "MonitorLekow",
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.KEEP, // KEEP: nie restartuj licznika, jeśli zadanie już istnieje
                 checkDosesRequest
         );
-        */
 
         patientAdapter = new PatientAdapter(this, patientList);
         deviceAdapter = new DeviceAdapter(this, deviceList, true);
