@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText; // Import
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -18,6 +18,11 @@ public class SignInActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Opcjonalnie: Tutaj warto zostawić sprawdzanie sesji, jeśli chcesz automatyczne logowanie
+        // SessionManager sessionManager = new SessionManager(getApplicationContext());
+        // if (sessionManager.getAuthToken() != null) { ... }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_sign_in);
 
@@ -39,7 +44,9 @@ public class SignInActivity extends AppCompatActivity {
         createAccountLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                finish();
+                // POPRAWKA: Zamiast finish(), uruchamiamy MainActivity (Rejestrację)
+                Intent intent = new Intent(SignInActivity.this, MainActivity.class);
+                startActivity(intent);
             }
         });
 
