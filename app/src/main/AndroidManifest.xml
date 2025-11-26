@@ -54,9 +54,11 @@
         <activity
             android:name=".EnterPasswordSignInActivity"
             android:exported="false" />
+
         <activity
-            android:name=".SignInActivity"
+            android:name=".MainActivity"
             android:exported="false" />
+
         <activity
             android:name=".CreatePasswordActivity"
             android:exported="false" />
@@ -65,7 +67,7 @@
             android:exported="false" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".SignInActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -96,7 +96,7 @@ public class ElderlyPanelActivity extends AppCompatActivity {
                         .setMessage("Czy na pewno chcesz się wylogować?")
                         .setPositiveButton("Tak", (dialog, which) -> {
                             sessionManager.clearSession();
-                            Intent intent = new Intent(ElderlyPanelActivity.this, MainActivity.class);
+                            Intent intent = new Intent(ElderlyPanelActivity.this, SignInActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                         })

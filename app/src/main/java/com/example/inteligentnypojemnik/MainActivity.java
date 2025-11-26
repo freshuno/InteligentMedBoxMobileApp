@@ -18,16 +18,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-        SessionManager sessionManager = new SessionManager(getApplicationContext());
-        if (sessionManager.getAuthToken() != null) {
-            Intent intent = new Intent(MainActivity.this, RoleSelectionActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
-
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -49,8 +39,8 @@ public class MainActivity extends AppCompatActivity {
         signInLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, SignInActivity.class);
-                startActivity(intent);
+                // Powrót do ekranu logowania
+                finish();
             }
         });
 
