@@ -171,6 +171,12 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
                 return "Aktywność pudełka";
             case "DEVICE_PAIRED":
                 return "Urządzenie sparowane";
+            case "OPENED":
+                return "Otwarto pudełko";
+            case "CLOSED":
+                return "Zamknięto pudełko";
+            case "PAIRED":
+                return "Sparowano pudełko";
             default:
                 return eventType;
         }
