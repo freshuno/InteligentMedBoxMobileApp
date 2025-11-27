@@ -19,9 +19,18 @@ public class SignInActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Opcjonalnie: Tutaj warto zostawić sprawdzanie sesji, jeśli chcesz automatyczne logowanie
-        // SessionManager sessionManager = new SessionManager(getApplicationContext());
-        // if (sessionManager.getAuthToken() != null) { ... }
+        // --- DODANY KOD: SPRAWDZANIE CZY UŻYTKOWNIK JEST JUŻ ZALOGOWANY ---
+        SessionManager sessionManager = new SessionManager(getApplicationContext());
+
+        // Sprawdzamy, czy w pamięci telefonu istnieje token dostępu
+        if (sessionManager.getAuthToken() != null && !sessionManager.getAuthToken().isEmpty()) {
+            // Jeśli token istnieje, pomijamy ekran logowania i idziemy do wyboru roli
+            Intent intent = new Intent(SignInActivity.this, RoleSelectionActivity.class);
+            startActivity(intent);
+            finish(); // Zamykamy SignInActivity, żeby przycisk "Wstecz" nie wrócił do logowania
+            return;   // Przerywamy dalsze ładowanie widoku logowania
+        }
+        // ------------------------------------------------------------------
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_sign_in);
@@ -44,7 +53,6 @@ public class SignInActivity extends AppCompatActivity {
         createAccountLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // POPRAWKA: Zamiast finish(), uruchamiamy MainActivity (Rejestrację)
                 Intent intent = new Intent(SignInActivity.this, MainActivity.class);
                 startActivity(intent);
             }
