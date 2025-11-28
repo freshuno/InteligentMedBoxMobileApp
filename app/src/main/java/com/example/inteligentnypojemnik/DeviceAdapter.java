@@ -36,13 +36,15 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
 
         holder.deviceName.setText(device.getName());
 
-        holder.deviceNextDose.setText("Użytkownik: " + device.getNextDose());
-
         if (showPatientName) {
             holder.patientName.setText(device.getPatientName());
             holder.patientName.setVisibility(View.VISIBLE);
+
+            holder.userInfoLayout.setVisibility(View.VISIBLE);
+            holder.deviceNextDose.setText("Użytkownik: " + device.getNextDose());
         } else {
             holder.patientName.setVisibility(View.GONE);
+            holder.userInfoLayout.setVisibility(View.GONE);
         }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -67,6 +69,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
         TextView patientName;
         ImageView deviceArrow;
         TextView deviceNextDose;
+        View userInfoLayout;
 
         public DeviceViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -75,6 +78,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceView
             patientName = itemView.findViewById(R.id.patient_name_on_card);
             deviceArrow = itemView.findViewById(R.id.device_arrow);
             deviceNextDose = itemView.findViewById(R.id.device_next_dose);
+            userInfoLayout = itemView.findViewById(R.id.user_info_layout);
         }
     }
 }
