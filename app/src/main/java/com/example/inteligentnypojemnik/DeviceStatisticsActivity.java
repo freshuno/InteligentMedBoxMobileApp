@@ -21,7 +21,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -111,6 +110,7 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
                     allApiEvents.clear();
                     allApiEvents.addAll(response.body().getEvents());
 
+                    // Sortowanie chronologiczne
                     Collections.sort(allApiEvents, (a, b) -> {
                         Date da = parseTimestamp(a.getTimestamp());
                         Date db = parseTimestamp(b.getTimestamp());
@@ -141,22 +141,42 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
         String selectedDate = filterFormat.format(currentDate.getTime());
 
         for (EventHistoryItem item : allApiEvents) {
-            String eventDate = formatTimestampToDateString(item.getTimestamp());
+            // Parsujemy oryginalną datę, żeby sprawdzić, czy pasuje do wybranego dnia
+            Date originalDate = parseTimestamp(item.getTimestamp());
+            if (originalDate == null) continue;
 
-            if (eventDate != null && eventDate.equals(selectedDate)) {
-                String time = formatTimestampToTime(item.getTimestamp());
-                String desc = getFriendlyEventName(item.getType());
+            String eventDateString = filterFormat.format(originalDate);
+
+            if (eventDateString.equals(selectedDate)) {
+
+                Date displayDate = originalDate;
+                if ("OPENED".equals(item.getType()) || "CLOSED".equals(item.getType())) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(originalDate);
+                    cal.add(Calendar.HOUR_OF_DAY, -1); // Cofamy o godzinę
+                    displayDate = cal.getTime();
+                }
+
+                SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                String time = timeFormat.format(displayDate);
+
+                String desc = getFriendlyEventName(item);
 
                 boolean isError = desc.toLowerCase().contains("niepoprawna");
                 displayedActivities.add(new DeviceActivity(time, desc, isError));
             }
         }
 
+        Collections.reverse(displayedActivities);
+
         adapter.notifyDataSetChanged();
         activityCount.setText(displayedActivities.size() + " aktywności");
     }
 
-    private String getFriendlyEventName(String eventType) {
+    private String getFriendlyEventName(EventHistoryItem item) {
+        String eventType = item.getType();
+        String subject = item.getSubject(); // np. "container_2"
+
         if (eventType == null ||
                 eventType.equalsIgnoreCase("T") ||
                 eventType.equals("-") ||
@@ -172,9 +192,13 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
             case "DEVICE_PAIRED":
                 return "Urządzenie sparowane";
             case "OPENED":
-                return "Otwarto pudełko";
+                // Wyciągamy numer komory z "container_X"
+                String openNum = parseContainerNumber(subject);
+                return "Otwarto Komorę " + openNum;
             case "CLOSED":
-                return "Zamknięto pudełko";
+                // Wyciągamy numer komory z "container_X"
+                String closeNum = parseContainerNumber(subject);
+                return "Zamknięto Komorę " + closeNum;
             case "PAIRED":
                 return "Sparowano pudełko";
             default:
@@ -182,17 +206,21 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
         }
     }
 
+    private String parseContainerNumber(String subject) {
+        if (subject != null && subject.startsWith("container_")) {
+            return subject.replace("container_", "");
+        }
+        return "?";
+    }
+
     private Date parseTimestamp(String ts) {
         if (ts == null || ts.isEmpty()) return null;
 
         try {
-            Instant instant = Instant.parse(ts);
-            return Date.from(instant);
-        } catch (Exception ignored) { }
-
-        try {
-            OffsetDateTime odt = OffsetDateTime.parse(ts);
-            return Date.from(odt.toInstant());
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                Instant instant = Instant.parse(ts);
+                return Date.from(instant);
+            }
         } catch (Exception ignored) { }
 
         try {
@@ -211,33 +239,5 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
             Log.e("TimeFormat", "Błąd parsowania daty: " + ts, e2);
             return null;
         }
-    }
-
-    private String formatTimestampToTime(String inputTimestamp) {
-        Date date = parseTimestamp(inputTimestamp);
-        if (date != null) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-            date = calendar.getTime();
-
-            SimpleDateFormat outputFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
-            outputFormat.setTimeZone(TimeZone.getDefault());
-            return outputFormat.format(date);
-        }
-        return "B/D";
-    }
-
-    private String formatTimestampToDateString(String inputTimestamp) {
-        Date date = parseTimestamp(inputTimestamp);
-        if (date != null) {
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-            date = calendar.getTime();
-
-            SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            outputFormat.setTimeZone(TimeZone.getDefault());
-            return outputFormat.format(date);
-        }
-        return null;
     }
 }
