@@ -5,48 +5,131 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="#F5F5F5"
     android:gravity="center"
+    android:orientation="vertical"
     android:padding="24dp"
-    android:background="#FFFFFF"
     tools:context=".RoleSelectionActivity">
+
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@android:drawable/ic_menu_myplaces"
+        app:tint="#007AFF"
+        android:layout_marginBottom="16dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Zalogowano!"
-        android:textSize="24sp"
+        android:text="Witaj w aplikacji!"
+        android:textColor="#000000"
+        android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"
         android:layout_marginBottom="8dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Wybierz panel do przetestowania:"
+        android:text="Wybierz swój profil, aby kontynuować:"
+        android:textColor="#757575"
         android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_marginBottom="32dp"/>
+        android:layout_marginBottom="40dp"
+        android:gravity="center"/>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_select_caregiver"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_elderly"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Panel Opiekuna"
-        android:padding="16dp"
-        android:layout_marginBottom="16dp"
-        app:backgroundTint="#000000"
-        android:textColor="@android:color/white"
-        app:cornerRadius="8dp"/>
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button_select_elderly"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="24dp">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_agenda"
+                app:tint="#4CAF50" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Panel Seniora"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sprawdź swoje leki"
+                    android:textSize="14sp"
+                    android:textColor="#757575"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_caregiver"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Panel Użytkownika (Seniora)"
-        android:padding="16dp"
-        app:backgroundTint="#000000"
-        android:textColor="@android:color/white"
-        app:cornerRadius="8dp"/>
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="24dp">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_view"
+                app:tint="#007AFF" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Panel Opiekuna"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#000000"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Zarządzaj urządzeniami"
+                    android:textSize="14sp"
+                    android:textColor="#757575"/>
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>

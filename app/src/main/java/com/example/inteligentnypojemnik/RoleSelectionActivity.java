@@ -3,13 +3,12 @@ package com.example.inteligentnypojemnik;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import com.google.android.material.button.MaterialButton;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.google.android.material.card.MaterialCardView; // [NOWE] Import dla kart
 
 public class RoleSelectionActivity extends AppCompatActivity {
 
@@ -36,10 +35,10 @@ public class RoleSelectionActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_role_selection);
 
-        MaterialButton btnCaregiver = findViewById(R.id.button_select_caregiver);
-        MaterialButton btnElderly = findViewById(R.id.button_select_elderly);
+        MaterialCardView cardCaregiver = findViewById(R.id.card_caregiver);
+        MaterialCardView cardElderly = findViewById(R.id.card_elderly);
 
-        btnCaregiver.setOnClickListener(new View.OnClickListener() {
+        cardCaregiver.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(RoleSelectionActivity.this, CaregiverPanelActivity.class);
@@ -48,7 +47,7 @@ public class RoleSelectionActivity extends AppCompatActivity {
             }
         });
 
-        btnElderly.setOnClickListener(new View.OnClickListener() {
+        cardElderly.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(RoleSelectionActivity.this, ElderlyPanelActivity.class);
