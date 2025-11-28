@@ -27,7 +27,6 @@ public class WeekdayAdapter extends RecyclerView.Adapter<WeekdayAdapter.WeekdayV
     }
     private OnDayActiveChangedListener activeChangedListener;
 
-    // Pomocnicza klasa-wrapper dla GSON
     private static class DeviceDetailsWrapper {
         public DeviceDetailsResponse.Configuration configuration;
         public DeviceDetailsWrapper(DeviceDetailsResponse.Configuration config) {
@@ -85,9 +84,8 @@ public class WeekdayAdapter extends RecyclerView.Adapter<WeekdayAdapter.WeekdayV
             intent.putExtra("DAY_NAME", dayName);
             intent.putExtra("DAY_KEY", dayKey);
 
-            // Używamy startActivityForResult, aby móc odświeżyć ten ekran po powrocie
             if (context instanceof DeviceScheduleActivity) {
-                ((DeviceScheduleActivity) context).startActivity(intent);
+                ((DeviceScheduleActivity) context).startActivityForResult(intent, DeviceScheduleActivity.REQUEST_CODE_DETAILS);
             } else {
                 context.startActivity(intent);
             }

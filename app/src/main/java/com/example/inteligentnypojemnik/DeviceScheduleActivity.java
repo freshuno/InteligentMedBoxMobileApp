@@ -24,6 +24,8 @@ import retrofit2.Response;
 
 public class DeviceScheduleActivity extends AppCompatActivity implements WeekdayAdapter.OnDayActiveChangedListener {
 
+    public static final int REQUEST_CODE_DETAILS = 200;
+
     private int deviceId = -1;
     private String deviceName = "Pudełko";
     private WeekdayAdapter adapter;
@@ -64,7 +66,7 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
                             return;
                         }
                         DeviceDetailsResponse details = resp.body();
-                        currentConfiguration = details.configuration; // Zapisujemy konfigurację
+                        currentConfiguration = details.configuration;
                         String deviceJson = new com.google.gson.Gson().toJson(details);
 
                         java.util.List<String> weekdays = java.util.Arrays.asList(
@@ -92,7 +94,7 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
 
     @Override
     public void onDayActiveChanged(String dayKey, boolean isActive, DeviceDetailsResponse.Configuration newConfig) {
-        this.currentConfiguration = newConfig; // Aktualizujemy bieżącą konfigurację
+        this.currentConfiguration = newConfig;
         UpdateConfigRequest requestBody = new UpdateConfigRequest(newConfig);
 
         Log.d("API_PUT", "Zapisywanie zmiany dla dnia: " + dayKey + " (aktywny: " + isActive + ")");
@@ -106,7 +108,6 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
                     adapter.updateConfiguration(currentConfiguration);
                 } else {
                     Toast.makeText(DeviceScheduleActivity.this, "Błąd zapisu", Toast.LENGTH_SHORT).show();
-                    // Cofnij zmianę (przeładuj adapter ze starą konfiguracją)
                     adapter.updateConfiguration(currentConfiguration);
                 }
             }
@@ -117,5 +118,26 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
                 adapter.updateConfiguration(currentConfiguration);
             }
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_DETAILS && resultCode == RESULT_OK && data != null) {
+            String updatedJson = data.getStringExtra("UPDATED_JSON");
+
+            if (updatedJson != null && adapter != null) {
+                try {
+                    DeviceDetailsResponse response = new Gson().fromJson(updatedJson, DeviceDetailsResponse.class);
+                    if (response != null && response.configuration != null) {
+                        this.currentConfiguration = response.configuration;
+                        adapter.updateConfiguration(this.currentConfiguration);
+                    }
+                } catch (Exception e) {
+                    Log.e("DeviceSchedule", "Błąd aktualizacji JSON po powrocie", e);
+                }
+            }
+        }
     }
 }
