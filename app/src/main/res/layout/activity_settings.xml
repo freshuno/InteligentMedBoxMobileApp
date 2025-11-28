@@ -79,6 +79,55 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="Domyślny tryb startu"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <RadioGroup
+                android:id="@+id/radioGroupRole"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/radioAlwaysAsk"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Zawsze pytaj (Wybór ręczny)" />
+
+                <RadioButton
+                    android:id="@+id/radioElderly"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Panel Użytkownika (Seniora)" />
+
+                <RadioButton
+                    android:id="@+id/radioCaregiver"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Panel Opiekuna" />
+            </RadioGroup>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_switch_mode_now"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Przełącz tryb teraz"
+                android:layout_marginTop="8dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#EEEEEE"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Powiadomienia"
                 android:textSize="18sp"
                 android:textStyle="bold"

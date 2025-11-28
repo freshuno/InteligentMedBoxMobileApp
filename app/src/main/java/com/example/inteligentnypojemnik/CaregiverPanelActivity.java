@@ -1,6 +1,6 @@
 package com.example.inteligentnypojemnik;
 
-import android.app.AlertDialog; // Dodano import
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -44,6 +44,7 @@ public class CaregiverPanelActivity extends AppCompatActivity {
     private MaterialButtonToggleGroup toggleGroup;
     private MaterialButton addDeviceButton;
     private ImageButton logoutButton;
+    private ImageButton settingsButton;
     private SessionManager sessionManager;
 
     @Override
@@ -58,6 +59,7 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         toggleGroup = findViewById(R.id.toggle_group);
         addDeviceButton = findViewById(R.id.add_device_button);
         logoutButton = findViewById(R.id.button_logout);
+        settingsButton = findViewById(R.id.button_settings_caregiver);
 
         patientList = new ArrayList<>();
         deviceList = new ArrayList<>();
@@ -67,7 +69,6 @@ public class CaregiverPanelActivity extends AppCompatActivity {
                 requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
             }
         }
-
 
         PeriodicWorkRequest checkDosesRequest =
                 new PeriodicWorkRequest.Builder(MissedDoseWorker.class, 15, TimeUnit.MINUTES)
@@ -96,6 +97,11 @@ public class CaregiverPanelActivity extends AppCompatActivity {
             }
         });
 
+        settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(CaregiverPanelActivity.this, SettingsActivity.class);
+            startActivity(intent);
+        });
+
         logoutButton.setOnClickListener(v -> {
             new AlertDialog.Builder(CaregiverPanelActivity.this)
                     .setTitle("Wylogowanie")
@@ -109,7 +115,6 @@ public class CaregiverPanelActivity extends AppCompatActivity {
                     .setNegativeButton("Nie", null)
                     .show();
         });
-        // ----------------------------------------------
 
         addDeviceButton.setOnClickListener(v -> {
             Intent intent = new Intent(CaregiverPanelActivity.this, AddDeviceActivity.class);

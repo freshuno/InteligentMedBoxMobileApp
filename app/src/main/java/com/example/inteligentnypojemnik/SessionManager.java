@@ -9,6 +9,7 @@ public class SessionManager {
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
     private static final String KEY_USERNAME = "username";
+    private static final String KEY_DEFAULT_ROLE = "default_role";
 
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
@@ -43,8 +44,19 @@ public class SessionManager {
         return prefs.getString(KEY_USERNAME, "Użytkownik");
     }
 
+    public void saveDefaultRole(String role) {
+        editor.putString(KEY_DEFAULT_ROLE, role);
+        editor.apply();
+    }
+
+    public String getDefaultRole() {
+        return prefs.getString(KEY_DEFAULT_ROLE, null);
+    }
+
     public void clearSession() {
-        editor.clear();
+        editor.remove(KEY_ACCESS_TOKEN);
+        editor.remove(KEY_REFRESH_TOKEN);
+        editor.remove(KEY_USERNAME);
         editor.apply();
     }
 }

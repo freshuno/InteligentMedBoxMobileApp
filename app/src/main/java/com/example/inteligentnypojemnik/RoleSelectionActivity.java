@@ -16,6 +16,23 @@ public class RoleSelectionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SessionManager sessionManager = new SessionManager(this);
+        String defaultRole = sessionManager.getDefaultRole();
+        boolean forceSelect = getIntent().getBooleanExtra("FORCE_SELECT", false);
+
+        if (!forceSelect && defaultRole != null) {
+            if ("caregiver".equals(defaultRole)) {
+                startActivity(new Intent(this, CaregiverPanelActivity.class));
+                finish();
+                return;
+            } else if ("elderly".equals(defaultRole)) {
+                startActivity(new Intent(this, ElderlyPanelActivity.class));
+                finish();
+                return;
+            }
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_role_selection);
 
