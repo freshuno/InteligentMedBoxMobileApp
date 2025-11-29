@@ -9,7 +9,7 @@ public class SessionManager {
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_REFRESH_TOKEN = "refresh_token";
     private static final String KEY_USERNAME = "username";
-    private static final String KEY_DEFAULT_ROLE = "default_role";
+    private static final String KEY_DEFAULT_ROLE_PREFIX = "default_role";
 
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
@@ -45,12 +45,24 @@ public class SessionManager {
     }
 
     public void saveDefaultRole(String role) {
-        editor.putString(KEY_DEFAULT_ROLE, role);
+        String currentUser = getUsername();
+        if (currentUser == null || currentUser.isEmpty()) return;
+        String userSpecificKey = KEY_DEFAULT_ROLE_PREFIX + currentUser;
+        editor.putString(userSpecificKey, role);
         editor.apply();
     }
 
     public String getDefaultRole() {
-        return prefs.getString(KEY_DEFAULT_ROLE, null);
+        // Pobieramy aktualnie zalogowanego użytkownika
+        String currentUser = getUsername();
+
+        // Jeśli nie ma usera (np. wylogowany), nie ma też jego preferencji
+        if (currentUser == null || currentUser.isEmpty()) return null;
+
+        // Odtwarzamy ten sam unikalny klucz
+        String userSpecificKey = KEY_DEFAULT_ROLE_PREFIX + currentUser;
+
+        return prefs.getString(userSpecificKey, null);
     }
 
     public void clearSession() {
