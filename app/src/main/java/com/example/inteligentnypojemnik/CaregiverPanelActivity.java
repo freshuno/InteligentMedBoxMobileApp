@@ -81,7 +81,10 @@ public class CaregiverPanelActivity extends AppCompatActivity {
         );
 
         patientAdapter = new PatientAdapter(this, patientList);
-        deviceAdapter = new DeviceAdapter(this, deviceList, true);
+
+        deviceAdapter = new DeviceAdapter(this, deviceList, true, (deviceId, deviceName) -> {
+            showDeleteConfirmationDialog(deviceId, deviceName);
+        });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(patientAdapter);
@@ -134,6 +137,34 @@ public class CaregiverPanelActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         fetchMyDevices();
+    }
+
+    private void showDeleteConfirmationDialog(int deviceId, String deviceName) {
+        new AlertDialog.Builder(this)
+                .setTitle("Usuń urządzenie")
+                .setMessage("Czy na pewno chcesz usunąć pudełko \"" + deviceName + "\"? Tej operacji nie można cofnąć.")
+                .setPositiveButton("Usuń", (dialog, which) -> deleteDeviceFromApi(deviceId))
+                .setNegativeButton("Anuluj", null)
+                .show();
+    }
+
+    private void deleteDeviceFromApi(int deviceId) {
+        RetrofitClient.getApiService(this).deleteDevice(deviceId).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(CaregiverPanelActivity.this, "Urządzenie usunięte", Toast.LENGTH_SHORT).show();
+                    fetchMyDevices();
+                } else {
+                    Toast.makeText(CaregiverPanelActivity.this, "Błąd usuwania: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(CaregiverPanelActivity.this, "Błąd sieci: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void fetchMyDevices() {

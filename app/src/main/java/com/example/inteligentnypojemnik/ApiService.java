@@ -2,10 +2,11 @@ package com.example.inteligentnypojemnik;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
-import retrofit2.http.Path; // Import
+import retrofit2.http.Path;
 
 public interface ApiService {
 
@@ -38,4 +39,7 @@ public interface ApiService {
             @Path("paired_device_id") int deviceId,
             @Body UpdateConfigRequest body
     );
+
+    @DELETE("api/devices/{paired_device_id}")
+    Call<Void> deleteDevice(@Path("paired_device_id") int deviceId);
 }

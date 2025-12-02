@@ -35,12 +35,26 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@id/device_icon"
+                android:layout_toStartOf="@+id/button_delete_device"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
                 android:text="Pudełko1"
                 android:textColor="@android:color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/button_delete_device"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="@android:color/holo_red_dark"
+                android:visibility="gone"
+                android:contentDescription="Usuń urządzenie" />
 
             <ImageView
                 android:id="@+id/device_arrow"
