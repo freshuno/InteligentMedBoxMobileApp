@@ -42,4 +42,7 @@ public interface ApiService {
 
     @DELETE("api/devices/{paired_device_id}")
     Call<Void> deleteDevice(@Path("paired_device_id") int deviceId);
+
+    @GET("api/devices/{paired_device_id}/new_key")
+    Call<ApiKeyResponse> regenerateApiKey(@Path("paired_device_id") int deviceId);
 }

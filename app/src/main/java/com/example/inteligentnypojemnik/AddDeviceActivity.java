@@ -1,15 +1,20 @@
 package com.example.inteligentnypojemnik;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher; // Import
-import com.journeyapps.barcodescanner.ScanContract; // Import
-import com.journeyapps.barcodescanner.ScanOptions; // Import
+import androidx.activity.result.ActivityResultLauncher;
+import com.journeyapps.barcodescanner.ScanContract;
+import com.journeyapps.barcodescanner.ScanOptions;
 import com.google.android.material.button.MaterialButton;
+import android.app.AlertDialog;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,13 +30,11 @@ public class AddDeviceActivity extends AppCompatActivity {
 
     private EditText inputPatientName, inputSerial, inputLabel;
     private MaterialButton generateButton;
-    private ImageButton scanQrButton; // Nowe pole
+    private ImageButton scanQrButton;
 
-    // Rejestracja launchera do obsługi wyniku skanowania
     private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
             result -> {
                 if(result.getContents() != null) {
-                    // Gdy zeskanowano pomyślnie, wpisz kod do pola inputSerial
                     inputSerial.setText(result.getContents());
                     Toast.makeText(AddDeviceActivity.this, "Zeskanowano: " + result.getContents(), Toast.LENGTH_SHORT).show();
                 }
@@ -48,36 +51,20 @@ public class AddDeviceActivity extends AppCompatActivity {
         inputPatientName = findViewById(R.id.input_patient_name);
         inputSerial = findViewById(R.id.input_serial_number);
         inputLabel = findViewById(R.id.input_label);
-
-        // Inicjalizacja przycisku skanowania
         scanQrButton = findViewById(R.id.button_scan_qr);
 
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
+        backButton.setOnClickListener(v -> finish());
+
+        scanQrButton.setOnClickListener(v -> {
+            ScanOptions options = new ScanOptions();
+            options.setPrompt("Zeskanuj kod QR z urządzenia");
+            options.setBeepEnabled(true);
+            options.setOrientationLocked(true);
+            options.setBarcodeImageEnabled(false);
+            barcodeLauncher.launch(options);
         });
 
-        // Obsługa kliknięcia w ikonę aparatu
-        scanQrButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ScanOptions options = new ScanOptions();
-                options.setPrompt("Zeskanuj kod QR z urządzenia");
-                options.setBeepEnabled(true);
-                options.setOrientationLocked(true); // Blokada orientacji (pionowa)
-                options.setBarcodeImageEnabled(false);
-                barcodeLauncher.launch(options);
-            }
-        });
-
-        generateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pairNewDevice();
-            }
-        });
+        generateButton.setOnClickListener(v -> pairNewDevice());
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -87,7 +74,6 @@ public class AddDeviceActivity extends AppCompatActivity {
     }
 
     private void pairNewDevice() {
-        // ... (Reszta Twojego kodu bez zmian) ...
         String seniorUsername = inputPatientName.getText().toString();
         String physicalDeviceId = inputSerial.getText().toString();
         String label = inputLabel.getText().toString();
@@ -103,8 +89,16 @@ public class AddDeviceActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<MyDevice> call, Response<MyDevice> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    Toast.makeText(AddDeviceActivity.this, "Urządzenie dodane!", Toast.LENGTH_SHORT).show();
-                    finish();
+                    MyDevice device = response.body();
+                    String apiKey = device.getApiKey();
+
+                    if (apiKey != null && !apiKey.isEmpty()) {
+                        showApiKeyDialog(apiKey);
+                    } else {
+                        Toast.makeText(AddDeviceActivity.this, "Urządzenie dodane, ale brak API Key w odpowiedzi", Toast.LENGTH_SHORT).show();
+                        finish();
+                    }
+
                 } else {
                     String errorMsg = "Błąd parowania: " + response.code() + " " + response.message();
                     Log.e("API_ERROR", errorMsg);
@@ -117,6 +111,33 @@ public class AddDeviceActivity extends AppCompatActivity {
                 Log.e("API_FAILURE", "Błąd połączenia: " + t.getMessage());
                 Toast.makeText(AddDeviceActivity.this, "Błąd połączenia: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
+        });
+    }
+
+    private void showApiKeyDialog(String apiKey) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Sukces! Wygenerowano klucz API");
+        builder.setMessage("Oto Twój klucz API:\n\n" + apiKey + "\n\nUWAGA: Ten klucz wyświetla się TYLKO RAZ! Skopiuj go teraz i zapisz w bezpiecznym miejscu.");
+        builder.setCancelable(false);
+
+        builder.setNeutralButton("Kopiuj", (dialog, which) -> {
+            // Placeholder, onClick zostanie nadpisany
+        });
+
+        builder.setPositiveButton("Zamknij", (dialog, which) -> {
+            dialog.dismiss();
+            finish(); // Zamykamy ekran dodawania
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // Nadpisujemy przycisk "Kopiuj", żeby nie zamykał dialogu automatycznie
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("API Key", apiKey);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(AddDeviceActivity.this, "Skopiowano do schowka!", Toast.LENGTH_SHORT).show();
         });
     }
 }

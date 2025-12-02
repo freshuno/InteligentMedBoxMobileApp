@@ -1,5 +1,9 @@
 package com.example.inteligentnypojemnik;
 
+import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,8 +19,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.List;
-
 import com.google.gson.Gson;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -42,6 +44,7 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
         TextView headerTitle = findViewById(R.id.device_name_header);
         recyclerView = findViewById(R.id.weekdays_recycler_view);
         MaterialButton statsButton = findViewById(R.id.button_view_statistics);
+        MaterialButton regenerateKeyButton = findViewById(R.id.button_regenerate_key); // Nowy przycisk
 
         deviceName = getIntent().getStringExtra("DEVICE_NAME");
         deviceId = getIntent().getIntExtra("DEVICE_ID", -1);
@@ -55,6 +58,19 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
             startActivity(intent);
         });
 
+        // Obsługa generowania nowego klucza
+        regenerateKeyButton.setOnClickListener(v -> confirmRegenerateKey());
+
+        fetchDeviceDetails();
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets sb = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(sb.left, sb.top, sb.right, sb.bottom);
+            return insets;
+        });
+    }
+
+    private void fetchDeviceDetails() {
         RetrofitClient.getApiService(this).getDeviceDetails(deviceId)
                 .enqueue(new retrofit2.Callback<DeviceDetailsResponse>() {
                     @Override
@@ -84,11 +100,57 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
                                 "Błąd sieci: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets sb = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(sb.left, sb.top, sb.right, sb.bottom);
-            return insets;
+    private void confirmRegenerateKey() {
+        new AlertDialog.Builder(this)
+                .setTitle("Nowy klucz API")
+                .setMessage("Czy na pewno chcesz wygenerować nowy klucz API? Poprzedni klucz przestanie działać.")
+                .setPositiveButton("Tak, generuj", (dialog, which) -> performKeyRegeneration())
+                .setNegativeButton("Anuluj", null)
+                .show();
+    }
+
+    private void performKeyRegeneration() {
+        RetrofitClient.getApiService(this).regenerateApiKey(deviceId).enqueue(new Callback<ApiKeyResponse>() {
+            @Override
+            public void onResponse(Call<ApiKeyResponse> call, Response<ApiKeyResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    showApiKeyDialog(response.body().getApiKey());
+                } else {
+                    Toast.makeText(DeviceScheduleActivity.this, "Błąd generowania klucza: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ApiKeyResponse> call, Throwable t) {
+                Toast.makeText(DeviceScheduleActivity.this, "Błąd sieci: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showApiKeyDialog(String apiKey) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Nowy klucz API");
+        builder.setMessage("Twój nowy klucz API:\n\n" + apiKey + "\n\nUWAGA: Klucz widoczny jest TYLKO RAZ! Skopiuj go teraz.");
+        builder.setCancelable(false);
+
+        builder.setNeutralButton("Kopiuj", (dialog, which) -> {
+            // Placeholder, onClick zostanie nadpisany
+        });
+
+        builder.setPositiveButton("Zamknij", (dialog, which) -> {
+            dialog.dismiss();
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("API Key", apiKey);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(DeviceScheduleActivity.this, "Skopiowano do schowka!", Toast.LENGTH_SHORT).show();
         });
     }
 

@@ -6,6 +6,7 @@ public class MyDevice {
     private String senior_username;
     private String senior_display_name;
     private boolean is_active;
+    private String api_key; // Nowe pole
 
     public int getId() {
         return id;
@@ -21,5 +22,8 @@ public class MyDevice {
     }
     public boolean isActive() {
         return is_active;
+    }
+    public String getApiKey() {
+        return api_key;
     }
 }
