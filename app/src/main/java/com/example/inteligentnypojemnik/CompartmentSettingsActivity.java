@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView; // Pamiętaj o imporcie TextView
 import android.widget.Toast;
 import com.google.android.material.button.MaterialButton;
 import androidx.activity.EdgeToEdge;
@@ -49,12 +50,25 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.edit_med_recycler_view);
         inputTime = findViewById(R.id.input_time);
 
+        // [NOWE] Pobieramy referencję do nagłówka
+        TextView headerTitle = findViewById(R.id.header_title);
+
         try {
             deviceId = getIntent().getIntExtra("DEVICE_ID", -1);
             dayKey = getIntent().getStringExtra("DAY_KEY");
             compartmentKey = getIntent().getStringExtra("COMPARTMENT_KEY");
             deviceJson = getIntent().getStringExtra("DEVICE_JSON");
             String containerJson = getIntent().getStringExtra("CONTAINER_JSON");
+
+            // [NOWE] Odbieramy nazwy przekazane z poprzedniego ekranu i ustawiamy nagłówek
+            String compName = getIntent().getStringExtra("COMPARTMENT_NAME");
+            String devName = getIntent().getStringExtra("DEVICE_NAME");
+            String dayName = getIntent().getStringExtra("DAY_NAME");
+
+            if (compName != null && devName != null && dayName != null) {
+                // Ustawiamy format: "Przegroda 1 - Czwartek (Pudełko1)"
+                headerTitle.setText(compName + " - " + dayName + " (" + devName + ")");
+            }
 
             if (deviceId == -1 || dayKey == null || compartmentKey == null || deviceJson == null) {
                 Toast.makeText(this, "Błąd ładowania danych (brak ID)", Toast.LENGTH_LONG).show();
@@ -157,6 +171,7 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
             }
         }
 
+        // Obsługa przypadku, gdy ViewHolder nie jest jeszcze utworzony/zrecyclowany (np. przy dużej liście)
         if (newMedicineList.isEmpty() && adapter.getItemCount() > 0 && recyclerView.getChildCount() > 0) {
             for (int i = 0; i < recyclerView.getChildCount(); i++) {
                 View view = recyclerView.getChildAt(i);
@@ -193,8 +208,7 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
             containerConfig.reminder_time = newTime.isEmpty() ? null : newTime;
             containerConfig.medicine = newMedicineList;
 
-            // USUWAMY TĘ LINIĘ:
-            // containerConfig.active = !newMedicineList.isEmpty();
+            // containerConfig.active = !newMedicineList.isEmpty(); // Zakomentowane, żeby nie wyłączać automatycznie
 
             dayConfig.containers.put(compartmentKey, containerConfig);
 

@@ -29,6 +29,10 @@ public class CompartmentScheduleActivity extends AppCompatActivity implements Co
     private int deviceId = -1;
     private String dayKey = "monday";
     private String deviceJson = "{}";
+    // [NOWE] Pola do przechowywania nazw
+    private String deviceName;
+    private String dayName;
+
     public static final String EXTRA_UPDATED_JSON = "UPDATED_JSON";
     public static final int REQUEST_CODE_UPDATE = 101;
 
@@ -47,8 +51,9 @@ public class CompartmentScheduleActivity extends AppCompatActivity implements Co
         TextView headerTitle = findViewById(R.id.header_title);
         recyclerView = findViewById(R.id.compartments_recycler_view);
 
-        String deviceName = getIntent().getStringExtra("DEVICE_NAME");
-        String dayName = getIntent().getStringExtra("DAY_NAME");
+        // [ZMIANA] Przypisanie do pól klasy zamiast zmiennych lokalnych
+        deviceName = getIntent().getStringExtra("DEVICE_NAME");
+        dayName = getIntent().getStringExtra("DAY_NAME");
         dayKey  = getIntent().getStringExtra("DAY_KEY");
         deviceJson = getIntent().getStringExtra("DEVICE_JSON");
         deviceId = getIntent().getIntExtra("DEVICE_ID", -1);
@@ -114,6 +119,10 @@ public class CompartmentScheduleActivity extends AppCompatActivity implements Co
                 intent.putExtra("DEVICE_JSON", this.deviceJson);
                 intent.putExtra("COMPARTMENT_KEY", comp.getCompartmentKey());
 
+                // [NOWE] Przekazywanie nazw dalej
+                intent.putExtra("DEVICE_NAME", deviceName);
+                intent.putExtra("DAY_NAME", dayName);
+
                 startActivityForResult(intent, REQUEST_CODE_UPDATE);
             });
 
@@ -136,7 +145,6 @@ public class CompartmentScheduleActivity extends AppCompatActivity implements Co
                 this.deviceJson = updatedDeviceJson;
                 loadAndDisplayCompartments(updatedDeviceJson);
 
-                // Przekaż zaktualizowany JSON z powrotem do DeviceScheduleActivity
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra(EXTRA_UPDATED_JSON, updatedDeviceJson);
                 setResult(RESULT_OK, resultIntent);
@@ -160,7 +168,6 @@ public class CompartmentScheduleActivity extends AppCompatActivity implements Co
 
             UpdateConfigRequest requestBody = new UpdateConfigRequest(config);
             Log.d("API_PUT", "Zapisywanie zmiany dla przegrody: " + compartmentKey + " (aktywny: " + isActive + ")");
-            Log.d("API_PUT_JSON", gson.toJson(requestBody));
 
             RetrofitClient.getApiService(this).updateConfig(deviceId, requestBody).enqueue(new Callback<DeviceDetailsResponse>() {
                 @Override
@@ -170,7 +177,6 @@ public class CompartmentScheduleActivity extends AppCompatActivity implements Co
                         String newJson = gson.toJson(response.body());
                         loadAndDisplayCompartments(newJson);
 
-                        // Przekaż zaktualizowany JSON z powrotem do DeviceScheduleActivity
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra(EXTRA_UPDATED_JSON, newJson);
                         setResult(RESULT_OK, resultIntent);

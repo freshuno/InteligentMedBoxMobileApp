@@ -47,7 +47,16 @@ public class CompartmentDetailsActivity extends AppCompatActivity {
         String medCount = getIntent().getStringExtra("MED_COUNT");
         String containerJson = getIntent().getStringExtra("CONTAINER_JSON");
 
-        headerTitle.setText(compartmentName);
+        // [NOWE] Pobieranie nazw urządzenia i dnia
+        String deviceName = getIntent().getStringExtra("DEVICE_NAME");
+        String dayName = getIntent().getStringExtra("DAY_NAME");
+
+        // [ZMIANA] Ustawienie dynamicznego tytułu: "Przegroda 1 - Czwartek (Pudełko1)"
+        if (compartmentName != null && deviceName != null && dayName != null) {
+            headerTitle.setText(compartmentName + " - " + dayName + " (" + deviceName + ")");
+        } else {
+            headerTitle.setText(compartmentName);
+        }
 
         medications = new ArrayList<>();
         adapter = new MedicationAdapter(this, medications);
@@ -65,6 +74,12 @@ public class CompartmentDetailsActivity extends AppCompatActivity {
             intent.putExtra("DEVICE_JSON", getIntent().getStringExtra("DEVICE_JSON"));
             intent.putExtra("COMPARTMENT_KEY", getIntent().getStringExtra("COMPARTMENT_KEY"));
             intent.putExtra("CONTAINER_JSON", getIntent().getStringExtra("CONTAINER_JSON"));
+
+            // Przekazujemy dane dalej do CompartmentSettingsActivity, aby tam też był ładny nagłówek
+            intent.putExtra("COMPARTMENT_NAME", compartmentName);
+            intent.putExtra("DEVICE_NAME", deviceName);
+            intent.putExtra("DAY_NAME", dayName);
+
             startActivityForResult(intent, REQUEST_CODE_UPDATE);
         });
 
