@@ -31,7 +31,6 @@ public class CreatePasswordActivity extends AppCompatActivity {
 
         userEmail = getIntent().getStringExtra("USER_EMAIL");
 
-        // Pobieranie referencji do pól
         EditText displayNameField = findViewById(R.id.editTextDisplayName);
         EditText passwordField = findViewById(R.id.editTextPassword);
         EditText repeatPasswordField = findViewById(R.id.editTextRepeatPassword);
@@ -44,9 +43,6 @@ public class CreatePasswordActivity extends AppCompatActivity {
                 String password = passwordField.getText().toString();
                 String repeatPassword = repeatPasswordField.getText().toString();
 
-                // --- WALIDACJA ---
-
-                // 1. Walidacja Nazwy
                 if (displayName.isEmpty()) {
                     displayNameField.setError("Nazwa jest wymagana");
                     return;
@@ -55,19 +51,16 @@ public class CreatePasswordActivity extends AppCompatActivity {
                     displayNameField.setError("Nazwa musi mieć min. 3 znaki");
                     return;
                 }
-                // Dozwolone tylko litery, cyfry i spacje (w tym polskie znaki)
                 if (!displayName.matches("[a-zA-Z0-9ąęćłńóśźżĄĘĆŁŃÓŚŹŻ ]+")) {
                     displayNameField.setError("Nazwa zawiera niedozwolone znaki");
                     return;
                 }
 
-                // 2. Walidacja Emaila (na wypadek błędu przy przekazywaniu)
                 if (userEmail == null || userEmail.isEmpty() || !userEmail.contains("@")) {
                     Toast.makeText(CreatePasswordActivity.this, "Błąd: Niepoprawny email!", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                // 3. Walidacja haseł
                 if (password.isEmpty()) {
                     passwordField.setError("Hasło jest wymagane");
                     return;
@@ -82,7 +75,6 @@ public class CreatePasswordActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Jeśli wszystko OK -> rejestracja
                 registerUser(displayName, userEmail, password);
             }
         });

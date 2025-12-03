@@ -121,18 +121,17 @@ public class AddDeviceActivity extends AppCompatActivity {
         builder.setCancelable(false);
 
         builder.setNeutralButton("Kopiuj", (dialog, which) -> {
-            // Placeholder, onClick zostanie nadpisany
+            // Placeholder
         });
 
         builder.setPositiveButton("Zamknij", (dialog, which) -> {
             dialog.dismiss();
-            finish(); // Zamykamy ekran dodawania
+            finish();
         });
 
         AlertDialog dialog = builder.create();
         dialog.show();
 
-        // Nadpisujemy przycisk "Kopiuj", żeby nie zamykał dialogu automatycznie
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v -> {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("API Key", apiKey);

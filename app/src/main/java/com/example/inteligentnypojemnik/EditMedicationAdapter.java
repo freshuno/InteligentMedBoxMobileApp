@@ -36,7 +36,6 @@ public class EditMedicationAdapter extends RecyclerView.Adapter<EditMedicationAd
         holder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // W przyszłości usunie lek
                 medicationList.remove(holder.getAdapterPosition());
                 notifyItemRemoved(holder.getAdapterPosition());
             }

@@ -6,7 +6,6 @@ public class Patient {
     private String initials;
     private String name;
     private String deviceCount;
-    // [NOWE] Lista urządzeń należących do tego pacjenta
     private List<MyDevice> userDevices;
 
     public Patient(String initials, String name, String deviceCount, List<MyDevice> userDevices) {
@@ -28,7 +27,6 @@ public class Patient {
         return deviceCount;
     }
 
-    // [NOWE] Getter do listy urządzeń
     public List<MyDevice> getUserDevices() {
         return userDevices;
     }

@@ -50,7 +50,6 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.edit_med_recycler_view);
         inputTime = findViewById(R.id.input_time);
 
-        // [NOWE] Pobieramy referencję do nagłówka
         TextView headerTitle = findViewById(R.id.header_title);
 
         try {
@@ -60,13 +59,11 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
             deviceJson = getIntent().getStringExtra("DEVICE_JSON");
             String containerJson = getIntent().getStringExtra("CONTAINER_JSON");
 
-            // [NOWE] Odbieramy nazwy przekazane z poprzedniego ekranu i ustawiamy nagłówek
             String compName = getIntent().getStringExtra("COMPARTMENT_NAME");
             String devName = getIntent().getStringExtra("DEVICE_NAME");
             String dayName = getIntent().getStringExtra("DAY_NAME");
 
             if (compName != null && devName != null && dayName != null) {
-                // Ustawiamy format: "Przegroda 1 - Czwartek (Pudełko1)"
                 headerTitle.setText(compName + " - " + dayName + " (" + devName + ")");
             }
 
@@ -171,7 +168,6 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
             }
         }
 
-        // Obsługa przypadku, gdy ViewHolder nie jest jeszcze utworzony/zrecyclowany (np. przy dużej liście)
         if (newMedicineList.isEmpty() && adapter.getItemCount() > 0 && recyclerView.getChildCount() > 0) {
             for (int i = 0; i < recyclerView.getChildCount(); i++) {
                 View view = recyclerView.getChildAt(i);
@@ -208,7 +204,6 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
             containerConfig.reminder_time = newTime.isEmpty() ? null : newTime;
             containerConfig.medicine = newMedicineList;
 
-            // containerConfig.active = !newMedicineList.isEmpty(); // Zakomentowane, żeby nie wyłączać automatycznie
 
             dayConfig.containers.put(compartmentKey, containerConfig);
 

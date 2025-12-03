@@ -58,7 +58,6 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
             startActivity(intent);
         });
 
-        // Obsługa generowania nowego klucza
         regenerateKeyButton.setOnClickListener(v -> confirmRegenerateKey());
 
         fetchDeviceDetails();
@@ -136,7 +135,7 @@ public class DeviceScheduleActivity extends AppCompatActivity implements Weekday
         builder.setCancelable(false);
 
         builder.setNeutralButton("Kopiuj", (dialog, which) -> {
-            // Placeholder, onClick zostanie nadpisany
+            // Placeholder
         });
 
         builder.setPositiveButton("Zamknij", (dialog, which) -> {

@@ -36,12 +36,12 @@ public class DeviceDetailsResponse {
 
     public static class DayConfig {
         public boolean active;
-        public Map<String, ContainerConfig> containers; // klucze = numery przegród
+        public Map<String, ContainerConfig> containers;
     }
 
     public static class ContainerConfig {
         public boolean active;
-        public String reminder_time; // np. "09:00"
+        public String reminder_time;
         public List<MedicineItem> medicine;
     }
 

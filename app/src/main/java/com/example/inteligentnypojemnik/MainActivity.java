@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
         signInLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Powrót do ekranu logowania
                 finish();
             }
         });

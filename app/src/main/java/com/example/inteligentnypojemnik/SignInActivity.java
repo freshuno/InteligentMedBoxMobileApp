@@ -19,16 +19,13 @@ public class SignInActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // --- DODANY KOD: SPRAWDZANIE CZY UŻYTKOWNIK JEST JUŻ ZALOGOWANY ---
         SessionManager sessionManager = new SessionManager(getApplicationContext());
 
-        // Sprawdzamy, czy w pamięci telefonu istnieje token dostępu
         if (sessionManager.getAuthToken() != null && !sessionManager.getAuthToken().isEmpty()) {
-            // Jeśli token istnieje, pomijamy ekran logowania i idziemy do wyboru roli
             Intent intent = new Intent(SignInActivity.this, RoleSelectionActivity.class);
             startActivity(intent);
-            finish(); // Zamykamy SignInActivity, żeby przycisk "Wstecz" nie wrócił do logowania
-            return;   // Przerywamy dalsze ładowanie widoku logowania
+            finish();
+            return;
         }
         // ------------------------------------------------------------------
 

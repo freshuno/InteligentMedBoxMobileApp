@@ -53,13 +53,10 @@ public class SessionManager {
     }
 
     public String getDefaultRole() {
-        // Pobieramy aktualnie zalogowanego użytkownika
         String currentUser = getUsername();
 
-        // Jeśli nie ma usera (np. wylogowany), nie ma też jego preferencji
         if (currentUser == null || currentUser.isEmpty()) return null;
 
-        // Odtwarzamy ten sam unikalny klucz
         String userSpecificKey = KEY_DEFAULT_ROLE_PREFIX + currentUser;
 
         return prefs.getString(userSpecificKey, null);

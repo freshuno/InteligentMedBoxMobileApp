@@ -119,7 +119,6 @@ public class CompartmentScheduleActivity extends AppCompatActivity implements Co
                 intent.putExtra("DEVICE_JSON", this.deviceJson);
                 intent.putExtra("COMPARTMENT_KEY", comp.getCompartmentKey());
 
-                // [NOWE] Przekazywanie nazw dalej
                 intent.putExtra("DEVICE_NAME", deviceName);
                 intent.putExtra("DAY_NAME", dayName);
 

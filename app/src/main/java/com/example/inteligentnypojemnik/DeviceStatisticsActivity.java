@@ -110,7 +110,6 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
                     allApiEvents.clear();
                     allApiEvents.addAll(response.body().getEvents());
 
-                    // Sortowanie chronologiczne
                     Collections.sort(allApiEvents, (a, b) -> {
                         Date da = parseTimestamp(a.getTimestamp());
                         Date db = parseTimestamp(b.getTimestamp());
@@ -141,7 +140,6 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
         String selectedDate = filterFormat.format(currentDate.getTime());
 
         for (EventHistoryItem item : allApiEvents) {
-            // Parsujemy oryginalną datę, żeby sprawdzić, czy pasuje do wybranego dnia
             Date originalDate = parseTimestamp(item.getTimestamp());
             if (originalDate == null) continue;
 
@@ -153,7 +151,7 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
                 if ("OPENED".equals(item.getType()) || "CLOSED".equals(item.getType())) {
                     Calendar cal = Calendar.getInstance();
                     cal.setTime(originalDate);
-                    cal.add(Calendar.HOUR_OF_DAY, -1); // Cofamy o godzinę
+                    cal.add(Calendar.HOUR_OF_DAY, -1);
                     displayDate = cal.getTime();
                 }
 
@@ -175,7 +173,7 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
 
     private String getFriendlyEventName(EventHistoryItem item) {
         String eventType = item.getType();
-        String subject = item.getSubject(); // np. "container_2"
+        String subject = item.getSubject();
 
         if (eventType == null ||
                 eventType.equalsIgnoreCase("T") ||
@@ -192,11 +190,9 @@ public class DeviceStatisticsActivity extends AppCompatActivity {
             case "DEVICE_PAIRED":
                 return "Urządzenie sparowane";
             case "OPENED":
-                // Wyciągamy numer komory z "container_X"
                 String openNum = parseContainerNumber(subject);
                 return "Otwarto Komorę " + openNum;
             case "CLOSED":
-                // Wyciągamy numer komory z "container_X"
                 String closeNum = parseContainerNumber(subject);
                 return "Zamknięto Komorę " + closeNum;
             case "PAIRED":

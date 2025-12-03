@@ -28,7 +28,7 @@ public class NotificationReceiver extends BroadcastReceiver {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "med_channel")
-                .setSmallIcon(android.R.drawable.ic_dialog_info) // Tu wstaw swoją ikonkę z drawable jeśli masz, np. R.drawable.ic_launcher_foreground
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setContentTitle("Za 15 minut weź leki!")
                 .setContentText(medInfo)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

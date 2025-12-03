@@ -84,14 +84,7 @@ public class MissedDoseWorker extends Worker {
         }
 
         long currentTimeMillis = System.currentTimeMillis();
-
-        // === KONFIGURACJA CZASU (PRODUKCJA) ===
-        // 1. Start sprawdzania: 15 minut po czasie leku
         long thresholdMillis = 15 * 60 * 1000;
-
-        // 2. Koniec sprawdzania: 30 minut po czasie leku
-        // (Dzięki temu, gdy worker uruchomi się w kolejnym cyklu np. po 30 min,
-        //  uzna ten lek za "stary" i nie wyśle powiadomienia drugi raz)
         long maxLookBackMillis = 30 * 60 * 1000;
 
         for (DeviceDetailsResponse.ContainerConfig container : dayConfig.containers.values()) {
@@ -123,7 +116,6 @@ public class MissedDoseWorker extends Worker {
                             Date eventDate = parseTimestamp(event.getTimestamp());
                             if (eventDate != null) {
                                 long eventTime = eventDate.getTime();
-                                // Sprawdzamy czy aktywność była PO zaplanowanym czasie leku
                                 if (eventTime >= doseTimeMillis) {
                                     medicineTaken = true;
                                     break;
@@ -198,7 +190,6 @@ public class MissedDoseWorker extends Worker {
 
     private void sendNotification(Context context, String patientName, String time) {
         String channelId = "caregiver_alerts";
-        // Unikalne ID powiadomienia na bazie czasu, żeby się nie nadpisywały
         int notificationId = time.hashCode();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

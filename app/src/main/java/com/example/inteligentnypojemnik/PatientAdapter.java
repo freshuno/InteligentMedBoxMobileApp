@@ -40,10 +40,8 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // [ZMIANA] Przekazujemy listę urządzeń tego pacjenta
                 Intent intent = new Intent(context, PatientDevicesActivity.class);
 
-                // Serializujemy listę urządzeń do JSON
                 Gson gson = new Gson();
                 String devicesJson = gson.toJson(patient.getUserDevices());
 
