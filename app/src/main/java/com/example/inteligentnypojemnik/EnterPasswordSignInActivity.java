@@ -62,8 +62,7 @@ public class EnterPasswordSignInActivity extends AppCompatActivity {
 
         String username = email.split("@")[0];
 
-        Log.d("API_CALL", "Logowanie (JSON): u=" + username + ", p=" + password);
-
+        Log.d("API_CALL", "Próba logowania użytkownika: " + username);
         LoginRequest request = new LoginRequest(username, password);
 
         RetrofitClient.getApiService(EnterPasswordSignInActivity.this).loginUser(request).enqueue(new Callback<LoginResponse>() {

@@ -107,8 +107,7 @@ public class CreatePasswordActivity extends AppCompatActivity {
 
         String username = email.split("@")[0];
 
-        Log.d("API_CALL", "Rejestracja: dn=" + displayName + ", u=" + username + ", e=" + email + ", p=" + password);
-
+        Log.d("API_CALL", "Rejestracja: dn=" + displayName + ", u=" + username + ", e=" + email);
         RegisterRequest request = new RegisterRequest(displayName, username, email, password);
 
         RetrofitClient.getApiService(CreatePasswordActivity.this).registerUser(request).enqueue(new Callback<RegisterResponse>() {
