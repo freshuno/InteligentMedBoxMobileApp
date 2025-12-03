@@ -48,37 +48,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Profil użytkownika"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black"
-                android:layout_marginBottom="8dp"/>
-
-            <TextView
-                android:id="@+id/setting_change_name"
-                style="@style/SettingsItem"
-                android:text="Zmień nazwę wyświetlaną" />
-
-            <TextView
-                android:id="@+id/setting_change_email"
-                style="@style/SettingsItem"
-                android:text="Zmień e-mail" />
-
-            <TextView
-                android:id="@+id/setting_change_password"
-                style="@style/SettingsItem"
-                android:text="Zmień hasło" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#EEEEEE"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:text="Domyślny tryb startu"
                 android:textSize="18sp"
                 android:textStyle="bold"
