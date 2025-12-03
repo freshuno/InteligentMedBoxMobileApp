@@ -23,12 +23,12 @@
 
             <ImageView
                 android:id="@+id/device_icon"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_alignParentStart="true"
                 android:layout_centerVertical="true"
-                android:src="@android:drawable/ic_dialog_dialer"
-                app:tint="#888888" />
+                android:src="@drawable/ic_smart_medbox"
+                app:tint="#007AFF" />
 
             <TextView
                 android:id="@+id/device_name"
@@ -70,7 +70,7 @@
             android:id="@+id/patient_name_on_card"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="56dp"
+            android:layout_marginStart="64dp"
             android:layout_marginBottom="8dp"
             android:text="Anna Kowalska"
             android:textColor="@android:color/black"
@@ -80,7 +80,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginStart="56dp">
+            android:layout_marginStart="64dp">
 
             <LinearLayout
                 android:id="@+id/user_info_layout"
