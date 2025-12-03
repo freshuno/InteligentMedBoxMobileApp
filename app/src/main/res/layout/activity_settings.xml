@@ -101,7 +101,7 @@
                     android:id="@+id/radioElderly"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Panel Użytkownika (Seniora)" />
+                    android:text="Panel Użytkownika" />
 
                 <RadioButton
                     android:id="@+id/radioCaregiver"
