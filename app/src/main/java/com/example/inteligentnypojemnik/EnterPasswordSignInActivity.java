@@ -74,9 +74,16 @@ public class EnterPasswordSignInActivity extends AppCompatActivity {
                     String accessToken = response.body().getAccess();
                     String refreshToken = response.body().getRefresh();
                     String loggedInUsername = response.body().getUsername();
+                    String displayName = response.body().getDisplayName();
 
                     sessionManager.saveTokens(accessToken, refreshToken);
                     sessionManager.saveUsername(loggedInUsername);
+
+                    if (displayName != null && !displayName.isEmpty()) {
+                        sessionManager.saveDisplayName(displayName);
+                    } else {
+                        sessionManager.saveDisplayName(loggedInUsername);
+                    }
 
                     Toast.makeText(EnterPasswordSignInActivity.this, "Zalogowano pomyślnie!", Toast.LENGTH_SHORT).show();
 

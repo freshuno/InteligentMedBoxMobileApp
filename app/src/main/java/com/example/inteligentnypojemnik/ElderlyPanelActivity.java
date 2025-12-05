@@ -1,16 +1,16 @@
 package com.example.inteligentnypojemnik;
 
 import android.app.AlarmManager;
-import android.app.AlertDialog; // Dodano import do dialogu
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface; // Dodano import
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri; // Dodano import do Uri
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings; // Dodano import do Settings
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -74,7 +74,14 @@ public class ElderlyPanelActivity extends AppCompatActivity {
         userName = findViewById(R.id.textViewUserName);
         currentDateText = findViewById(R.id.textViewCurrentDate);
 
-        userName.setText(sessionManager.getUsername());
+        // --- ZMIANA TUTAJ: Pobieramy DisplayName, a jak nie ma to Username ---
+        String displayName = sessionManager.getDisplayName();
+        if (displayName != null && !displayName.isEmpty()) {
+            userName.setText(displayName);
+        } else {
+            userName.setText(sessionManager.getUsername());
+        }
+        // ---------------------------------------------------------------------
 
         updateDate();
 
@@ -104,7 +111,6 @@ public class ElderlyPanelActivity extends AppCompatActivity {
                         .show();
             }
         });
-        // ----------------------------------------------
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -135,7 +141,6 @@ public class ElderlyPanelActivity extends AppCompatActivity {
             }
         }
     }
-    // -------------------------------------------------------
 
     private void setupRecyclerView() {
         doseList = new ArrayList<>();
