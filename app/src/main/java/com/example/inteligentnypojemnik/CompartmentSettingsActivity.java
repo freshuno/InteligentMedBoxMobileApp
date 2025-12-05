@@ -6,7 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView; // Pamiętaj o imporcie TextView
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.material.button.MaterialButton;
 import androidx.activity.EdgeToEdge;
@@ -138,57 +138,18 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
         String newTime = inputTime.getText().toString();
         List<DeviceDetailsResponse.MedicineItem> newMedicineList = new ArrayList<>();
 
-        for (int i = 0; i < adapter.getItemCount(); i++) {
-            EditMedicationAdapter.EditViewHolder holder = (EditMedicationAdapter.EditViewHolder) recyclerView.findViewHolderForAdapterPosition(i);
-
-            String name;
-            String dosageString;
-
-            if (holder != null) {
-                name = holder.name.getText().toString();
-                dosageString = holder.dosage.getText().toString();
-            } else {
-                View view = recyclerView.getChildAt(i);
-                if(view == null) continue;
-
-                EditText medNameView = view.findViewById(R.id.edit_med_name);
-                EditText medDosageView = view.findViewById(R.id.edit_med_dosage);
-
-                name = medNameView.getText().toString();
-                dosageString = medDosageView.getText().toString();
-            }
-
+        for (Medication med : medicationList) {
+            String name = med.getName();
+            String dosageString = med.getDosage();
             int dose = parseDoseFromString(dosageString);
 
-            if (name != null && !name.isEmpty() && !name.trim().isEmpty() && dose > 0) {
+            if (name != null && !name.isEmpty() && !name.trim().isEmpty()) {
                 DeviceDetailsResponse.MedicineItem item = new DeviceDetailsResponse.MedicineItem();
                 item.name = name;
-                item.dose = dose;
+                item.dose = (dose > 0) ? dose : 1;
                 newMedicineList.add(item);
             }
         }
-
-        if (newMedicineList.isEmpty() && adapter.getItemCount() > 0 && recyclerView.getChildCount() > 0) {
-            for (int i = 0; i < recyclerView.getChildCount(); i++) {
-                View view = recyclerView.getChildAt(i);
-                if(view == null) continue;
-
-                EditText medNameView = view.findViewById(R.id.edit_med_name);
-                EditText medDosageView = view.findViewById(R.id.edit_med_dosage);
-
-                String name = medNameView.getText().toString();
-                String dosageString = medDosageView.getText().toString();
-                int dose = parseDoseFromString(dosageString);
-
-                if (name != null && !name.isEmpty() && !name.trim().isEmpty() && dose > 0) {
-                    DeviceDetailsResponse.MedicineItem item = new DeviceDetailsResponse.MedicineItem();
-                    item.name = name;
-                    item.dose = dose;
-                    newMedicineList.add(item);
-                }
-            }
-        }
-
 
         try {
             DeviceDetailsResponse.DayConfig dayConfig = fullConfiguration.get(dayKey);
@@ -203,7 +164,6 @@ public class CompartmentSettingsActivity extends AppCompatActivity {
 
             containerConfig.reminder_time = newTime.isEmpty() ? null : newTime;
             containerConfig.medicine = newMedicineList;
-
 
             dayConfig.containers.put(compartmentKey, containerConfig);
 
